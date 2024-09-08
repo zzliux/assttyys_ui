@@ -1,0 +1,22 @@
+{
+  "files": [],
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "rootDir": "src",
+    "outFile": "lib/index.d.ts",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@": ["./src"]
+    },
+    "types": ["element-plus/global"],
+    "strictNullChecks": false
+  },
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    }
+  ]
+}

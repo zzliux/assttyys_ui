@@ -1,0 +1,74 @@
+<script setup lang="ts">
+import { inject, onMounted, onUnmounted, ref } from 'vue';
+import emitter from './EventBus';
+
+const contentDomRef = ref<HTMLDivElement>();
+const $props = defineProps({
+	name: String,
+});
+
+const namespace = inject('fixedCollapse.instanceNameSpace');
+const isOpen = ref(false);
+
+function toggleItem() {
+	isOpen.value = !isOpen.value;
+	emitter.emit('Event.FixedCollapseItem.ModelUpdate', `${namespace}:${isOpen.value ? $props.name : ''}`);
+}
+
+onMounted(() => {
+	emitter.on('Event.FixedCollapse.ModelUpdate', modelChangeEvent);
+	emitter.on('Event.FixedCollapseItem.ModelUpdate', modelChangeEvent);
+
+	const parentContainerDom = document.getElementById(`fixedCollapse-${namespace}`);
+	const singleDoms = parentContainerDom.getElementsByClassName('fixedCollapseItem-header');
+	
+	const parentHeight = parentContainerDom.offsetHeight;
+	const singleHeight = singleDoms[0].clientHeight;
+	const singleCounts = singleDoms.length;
+	const height = parentHeight - singleHeight * singleCounts;
+	function modelChangeEvent(val: string) {
+		if (val === `${namespace}:${$props.name}`) {
+			contentDomRef.value.style.height = `${height}px`;
+			isOpen.value = true;
+		} else {
+			contentDomRef.value.style.height = `0px`;
+			isOpen.value = false;
+		}
+	}
+});
+
+onUnmounted(() => {
+	emitter.off('Event.FixedCollapse.ModelUpdate');
+});
+
+</script>
+
+<template>
+	<div>
+		<div class="fixedCollapseItem-header" @click="toggleItem">
+			<slot name="header"></slot>
+		</div>
+		<div class="fixedCollapseItem-content" ref="contentDomRef">
+			<slot name="content"></slot>
+		</div>
+	</div>
+</template>
+
+<style scoped>
+.fixedCollapseItem-header {
+	background-color: #f4f4f4;
+	padding: 5px 10px;
+    font-size: 14px;
+}
+
+.fixedCollapseItem-content {
+	transition: height .1s linear;
+	overflow: auto;
+	height: 0px;
+}
+
+.fixedCollapseItem-content.open {
+	height: 50px;
+	overflow-y: auto;
+}
+</style>
