@@ -4,10 +4,10 @@ import { onMounted, onUnmounted, provide, ref, watch } from 'vue';
 import { uuid } from '@/tools/tools';
 import emitter from './EventBus';
 
-const instanceNameSpace = uuid();
-const containerDomId = ref<string>(`fixedCollapse-${instanceNameSpace}`);
+const instanceNamespace = uuid();
+const containerDomId = ref<string>(`fixedCollapse-${instanceNamespace}`);
 
-provide('fixedCollapse.instanceNameSpace', instanceNameSpace);
+provide('fixedCollapse.instanceNameSpace', instanceNamespace);
 
 const model = defineModel<string>();
 let emitFlag = false;
@@ -16,18 +16,17 @@ watch(model, (newVal) => {
 		emitFlag = false;
 		return;
 	}
-	console.log(emitFlag);
-	emitter.emit('Event.FixedCollapse.ModelUpdate', `${instanceNameSpace}:${newVal}`);
+	emitter.emit('Event.FixedCollapse.ModelUpdate', `${instanceNamespace}:${newVal}`);
 });
 
 onMounted(() => {
 	emitter.on('Event.FixedCollapseItem.ModelUpdate', val => {
 		const [namespace, name] = val.split(':');
-		if (namespace !== instanceNameSpace) return;
+		if (namespace !== instanceNamespace) return;
 		emitFlag = true;
 		model.value = name;
 	});
-	emitter.emit('Event.FixedCollapse.ModelUpdate', `${instanceNameSpace}:${model.value}`);
+	emitter.emit('Event.FixedCollapse.ModelUpdate', `${instanceNamespace}:${model.value}`);
 });
 
 onUnmounted(() => {
@@ -47,6 +46,5 @@ onUnmounted(() => {
 	position: relative;
 	height: 100%;
 	overflow: hidden;
-	border: 1px solid #ccc;
 }
 </style>

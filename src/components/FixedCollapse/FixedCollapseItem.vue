@@ -21,12 +21,14 @@ onMounted(() => {
 
 	const parentContainerDom = document.getElementById(`fixedCollapse-${namespace}`);
 	const singleDoms = parentContainerDom.getElementsByClassName('fixedCollapseItem-header');
-	
+
 	const parentHeight = parentContainerDom.offsetHeight;
 	const singleHeight = singleDoms[0].clientHeight;
 	const singleCounts = singleDoms.length;
 	const height = parentHeight - singleHeight * singleCounts;
 	function modelChangeEvent(val: string) {
+		const [instanceNamespace, name] = val.split(':');
+		if (instanceNamespace !== namespace) return;
 		if (val === `${namespace}:${$props.name}`) {
 			contentDomRef.value.style.height = `${height}px`;
 			isOpen.value = true;
@@ -58,11 +60,11 @@ onUnmounted(() => {
 .fixedCollapseItem-header {
 	background-color: #f4f4f4;
 	padding: 5px 10px;
-    font-size: 14px;
+	font-size: 14px;
 }
 
 .fixedCollapseItem-content {
-	transition: height .1s linear;
+	transition: height .2s linear;
 	overflow: auto;
 	height: 0px;
 }

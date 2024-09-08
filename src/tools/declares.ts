@@ -38,13 +38,7 @@ export type AutoWebTypes = {
         param: string,
         result: Scheme
     },
-    // 未收藏的方案
-    getUnStaredSchemeList: {
-        param: void,
-        result: Scheme[]
-    },
-    // 已收藏的方案
-    getStaredSchemeList: {
+    getSchemeList: {
         param: void,
         result: Scheme[]
     },
