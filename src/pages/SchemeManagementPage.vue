@@ -4,7 +4,7 @@ import { AutoWeb } from '@/tools/AutoWeb';
 import Nav from '@/components/Nav.vue';
 import { FixedCollapse, FixedCollapaseItem } from '@/components/FixedCollapse';
 import type { Scheme } from '@/tools/declares';
-import ItemCard from '@/components/ItemCard.vue';
+import SchemeItemCard from '@/components/SchemeItemCard.vue';
 
 onMounted(async () => {
     loadData();
@@ -20,6 +20,17 @@ async function loadData() {
     unstaredUserSchemeList.value = res.filter(scheme => !scheme.star && !scheme.inner);
     unstaredInnerSchemeList.value = res.filter(scheme => !scheme.star && scheme.inner);
     staredSchemeList.value = res.filter(scheme => scheme.star);
+}
+
+function schemeItemClick() {
+    // TODO 跳转进入该方案的功能配置页
+    console.log('schemeItemClick');
+}
+
+function schemeItemLongClick(e: Event) {
+    console.log(e);
+    // TODO 方案的操作菜单
+    console.log('schemeItemLongClick');
 }
 
 </script>
@@ -40,25 +51,19 @@ async function loadData() {
                 <FixedCollapaseItem name="用户方案">
                     <template #header>用户方案</template>
                     <template #content>
-                        <ItemCard v-for="scheme in unstaredUserSchemeList">
-                            <el-text>{{ scheme.schemeName }}</el-text>
-                        </ItemCard>
+                        <SchemeItemCard v-for="scheme in unstaredUserSchemeList" :scheme="scheme" />
                     </template>
                 </FixedCollapaseItem>
                 <FixedCollapaseItem name="内置方案">
                     <template #header>内置方案</template>
                     <template #content>
-                        <ItemCard v-for="scheme in unstaredInnerSchemeList">
-                            <el-text>{{ scheme.schemeName }}</el-text>
-                        </ItemCard>
+                        <SchemeItemCard v-for="scheme in unstaredInnerSchemeList"  :scheme="scheme" />
                     </template>
                 </FixedCollapaseItem>
             </FixedCollapse>
         </div>
         <div class="container-right">
-            <ItemCard v-for="scheme in unstaredInnerSchemeList">
-                <el-text>{{ scheme.schemeName }}</el-text>
-            </ItemCard>
+            <SchemeItemCard v-for="scheme in unstaredInnerSchemeList"  :scheme="scheme" />
         </div>
     </div>
 </template>

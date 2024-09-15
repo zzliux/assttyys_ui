@@ -6,10 +6,12 @@
 
 <style scoped>
 .item-card-item {
-    padding: 5px 10px;
+    padding: 8px 10px;
     transition: background-color .1s linear;
     margin: 5px 5px;
     background-color: #fafafa;
+    display: flex;
+    justify-content: space-between
 }
 .item-card-item:active {
     background-color: aliceblue;
