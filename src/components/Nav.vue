@@ -36,11 +36,29 @@ onMounted(() => {
 </script>
 
 <template>
-    <div style="height: 20px; padding-top: 3px; padding-left: 10px">
-        <el-breadcrumb separator="/">
+    <div style="height: 46px; padding-top: 3px; padding-left: 10px">
+        <!-- <el-breadcrumb separator="/">
             <el-breadcrumb-item v-for="(item, index) in breadcrumbData" :key="index" :to="item.path || ''">
                 {{ item.name }}
             </el-breadcrumb-item>
-        </el-breadcrumb>
+        </el-breadcrumb> -->
+        <el-page-header :icon="null">
+            <template #title>
+                <el-text>ASSTTYYS</el-text>
+            </template>
+            <template #content>
+                <el-text>{{ $props.name }}</el-text>
+            </template>
+        </el-page-header>
     </div>
 </template>
+
+<style>
+.el-page-header__back,
+.el-page-header__left .el-divider--vertical,
+.el-page-header__content {
+    display: flex;
+    padding-top: 10px;
+    padding-bottom: 10px
+}
+</style>

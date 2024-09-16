@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Scheme } from '@/tools/declares';
 import ItemCard from './ItemCard.vue';
-import { Menu } from '@element-plus/icons-vue';
+import { Operation } from '@element-plus/icons-vue';
 import globalEmmiter from '@/tools/GlobalEventBus';
 import { AutoWeb } from '@/tools/AutoWeb';
 import { ref } from 'vue';
@@ -77,14 +77,17 @@ const remove = async () => {
         <div class="item-operation">
             <el-popover placement="left" :width="55" trigger="click" popper-class="scheme-item-operation">
                 <template #reference>
-                    <el-icon>
-                        <Menu />
-                    </el-icon>
+                    <el-link>
+                        <el-icon>
+                            <Operation />
+                        </el-icon>
+                    </el-link>
                 </template>
                 <template #default>
                     <el-link type="primary" @click="toTop">置顶</el-link><br />
                     <el-link type="success" @click="copyBtnEvent">复制</el-link><br />
-                    <el-link type="warning" @click="modifyBtnEvent">修改</el-link><br />
+                    <el-link v-if="!$props.scheme.inner" type="warning" @click="modifyBtnEvent">修改</el-link><br
+                        v-if="!$props.scheme.inner" />
                     <el-popconfirm title="确认是否删除" @confirm="remove" confirm-button-text="确认" cancel-button-text="取消">
                         <template #reference>
                             <el-link type="danger">删除</el-link>

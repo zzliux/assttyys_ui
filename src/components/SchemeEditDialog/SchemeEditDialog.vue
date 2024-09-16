@@ -17,6 +17,7 @@ onMounted(async () => {
 })
 const model = defineModel<boolean>(); // 是否显示
 const confirmBtnEvent = async () => {
+    dataScheme.value.inner = false;
     model.value = !await $props.onConfirm({
         oldScheme: $props.scheme,
         newScheme: dataScheme.value,

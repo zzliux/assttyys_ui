@@ -1,76 +1,98 @@
 <script setup lang="ts">
 import { inject, onMounted, onUnmounted, ref } from 'vue';
+import { ArrowRight } from '@element-plus/icons-vue';
 import emitter from './EventBus';
+
 
 const contentDomRef = ref<HTMLDivElement>();
 const $props = defineProps({
-	name: String,
+    name: String,
 });
 
 const namespace = inject('fixedCollapse.instanceNameSpace');
 const isOpen = ref(false);
 
 function toggleItem() {
-	isOpen.value = !isOpen.value;
-	emitter.emit('Event.FixedCollapseItem.ModelUpdate', `${namespace}:${isOpen.value ? $props.name : ''}`);
+    isOpen.value = !isOpen.value;
+    emitter.emit('Event.FixedCollapseItem.ModelUpdate', `${namespace}:${isOpen.value ? $props.name : ''}`);
 }
 
 onMounted(() => {
-	emitter.on('Event.FixedCollapse.ModelUpdate', modelChangeEvent);
-	emitter.on('Event.FixedCollapseItem.ModelUpdate', modelChangeEvent);
+    emitter.on('Event.FixedCollapse.ModelUpdate', modelChangeEvent);
+    emitter.on('Event.FixedCollapseItem.ModelUpdate', modelChangeEvent);
 
-	const parentContainerDom = document.getElementById(`fixedCollapse-${namespace}`);
-	const singleDoms = parentContainerDom.getElementsByClassName('fixedCollapseItem-header');
+    const parentContainerDom = document.getElementById(`fixedCollapse-${namespace}`);
+    const singleDoms = parentContainerDom.getElementsByClassName('fixedCollapseItem-header');
 
-	const parentHeight = parentContainerDom.offsetHeight;
-	const singleHeight = singleDoms[0].clientHeight;
-	const singleCounts = singleDoms.length;
-	const height = parentHeight - singleHeight * singleCounts;
-	function modelChangeEvent(val: string) {
-		const [instanceNamespace, name] = val.split(':');
-		if (instanceNamespace !== namespace) return;
-		if (val === `${namespace}:${$props.name}`) {
-			contentDomRef.value.style.height = `${height}px`;
-			isOpen.value = true;
-		} else {
-			contentDomRef.value.style.height = `0px`;
-			isOpen.value = false;
-		}
-	}
+    const parentHeight = parentContainerDom.offsetHeight;
+    const singleHeight = singleDoms[0].clientHeight;
+    const singleCounts = singleDoms.length;
+    const height = parentHeight - singleHeight * singleCounts;
+    function modelChangeEvent(val: string) {
+        const [instanceNamespace, name] = val.split(':');
+        if (instanceNamespace !== namespace) return;
+        if (val === `${namespace}:${$props.name}`) {
+            contentDomRef.value.style.height = `${height}px`;
+            isOpen.value = true;
+        } else {
+            contentDomRef.value.style.height = `0px`;
+            isOpen.value = false;
+        }
+    }
 });
 
 onUnmounted(() => {
-	emitter.off('Event.FixedCollapse.ModelUpdate');
+    emitter.off('Event.FixedCollapse.ModelUpdate');
 });
 
 </script>
 
 <template>
-	<div>
-		<div class="fixedCollapseItem-header" @click="toggleItem">
-			<slot name="header"></slot>
-		</div>
-		<div class="fixedCollapseItem-content" ref="contentDomRef">
-			<slot name="content"></slot>
-		</div>
-	</div>
+    <div>
+        <div :class="`fixedCollapseItem-header ${isOpen ? 'open' : ''}`" @click="toggleItem">
+            <div class="fixedCollapseItem-header-text">
+                <slot name="header"></slot>
+            </div>
+            <div class="fixedCollapseItem-header-icon">
+                <span class=""><el-icon>
+                        <ArrowRight />
+                    </el-icon></span>
+            </div>
+        </div>
+        <div class="fixedCollapseItem-content" ref="contentDomRef">
+            <slot name="content"></slot>
+        </div>
+    </div>
 </template>
 
 <style scoped>
 .fixedCollapseItem-header {
-	background-color: #f4f4f4;
-	padding: 5px 10px;
-	font-size: 14px;
+    border-top: 1px solid #ebeef5;
+    border-bottom: 1px solid #ebeef5;
+    padding: 5px 10px;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.fixedCollapseItem-header-text,
+.fixedCollapseItem-header-icon {
+    display: flex;
+    transition: all .2s linear;
+}
+
+.fixedCollapseItem-header.open .fixedCollapseItem-header-icon {
+    transform: rotate(90deg);
 }
 
 .fixedCollapseItem-content {
-	transition: height .2s linear;
-	overflow: auto;
-	height: 0px;
+    transition: height .2s linear;
+    overflow: auto;
+    height: 0px;
 }
 
 .fixedCollapseItem-content.open {
-	height: 50px;
-	overflow-y: auto;
+    height: 50px;
+    overflow-y: auto;
 }
 </style>

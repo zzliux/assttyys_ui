@@ -12,7 +12,8 @@ onMounted(async () => {
     loadData();
 });
 
-const collapseVal = ref('用户方案');
+const collapseValLeft = ref('未收藏方案-用户方案');
+const collapseValRight = ref('已收藏方案');
 
 const schemeList = ref<Scheme[]>([]);
 const unstaredUserSchemeList = ref<Scheme[]>([]);
@@ -68,25 +69,17 @@ onUnmounted(() => {
 
 <template>
     <Nav name="方案管理" />
-    <div style="display: flex; height: 20px">
-        <div style="width: 50%; display: flex; padding-left: 10px">
-            <el-text>未收藏方案</el-text>
-        </div>
-        <div style="width: 50%; display: flex; padding-left: 10px">
-            <el-text>已收藏方案</el-text>
-        </div>
-    </div>
     <div class="container">
         <div class="container-left">
-            <FixedCollapse v-model="collapseVal">
-                <FixedCollapaseItem name="用户方案">
-                    <template #header>用户方案</template>
+            <FixedCollapse v-model="collapseValLeft">
+                <FixedCollapaseItem name="未收藏方案-用户方案">
+                    <template #header>未收藏方案-用户方案</template>
                     <template #content>
                         <SchemeItemCard v-for="scheme in unstaredUserSchemeList" :scheme="scheme" />
                     </template>
                 </FixedCollapaseItem>
-                <FixedCollapaseItem name="内置方案">
-                    <template #header>内置方案</template>
+                <FixedCollapaseItem name="未收藏方案-内置方案">
+                    <template #header>未收藏方案-内置方案</template>
                     <template #content>
                         <SchemeItemCard v-for="scheme in unstaredInnerSchemeList" :scheme="scheme" />
                     </template>
@@ -94,7 +87,14 @@ onUnmounted(() => {
             </FixedCollapse>
         </div>
         <div class="container-right">
-            <SchemeItemCard v-for="scheme in unstaredInnerSchemeList" :scheme="scheme" />
+            <FixedCollapse v-model="collapseValRight">
+                <FixedCollapaseItem name="已收藏方案">
+                    <template #header>已收藏方案</template>
+                    <template #content>
+                        <SchemeItemCard v-for="scheme in staredSchemeList" :scheme="scheme" />
+                    </template>
+                </FixedCollapaseItem>
+            </FixedCollapse>
         </div>
     </div>
 </template>
@@ -102,7 +102,7 @@ onUnmounted(() => {
 <style scoped>
 .container {
     width: 100%;
-    height: calc(100% - 40px);
+    height: calc(100% - 46px);
     display: flex;
 }
 
@@ -111,6 +111,6 @@ onUnmounted(() => {
     width: 50%;
     height: 100%;
     overflow: auto;
-    box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 0px 1px 0px rgba(0, 0, 0, 0.1);
 }
 </style>

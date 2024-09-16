@@ -14,12 +14,12 @@ export const categorySchemeList = (schemeList: Scheme[]) => {
     const staredSchemeList = [];
     for (let i = 0; i < schemeList.length; i++) {
         const scheme = schemeList[i];
-        if (!scheme.star && !scheme.inner) {
+        if (scheme.star) {
+            staredSchemeList.push(scheme);
+        } else if (!scheme.star && !scheme.inner) {
             unstaredUserSchemeList.push(scheme);
         } else if (!scheme.star && scheme.inner) {
             unstaredInnerSchemeList.push(scheme);
-        } else if (scheme.star) {
-            staredSchemeList.push(scheme);
         }
     }
     return {
