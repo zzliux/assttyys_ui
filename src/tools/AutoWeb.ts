@@ -60,6 +60,8 @@ if (localStorage.getItem('debug')) {
         } else {
             result = mockData[key];
         }
+        console.log(`[autoweb::request:${key}]`, param.params);
+        console.log(`[autoweb::request:${key}]`, result);
         (window as any)[param.PROMPT_CALLBACK](result);
     };
     AutoWeb.setMode('promptMock')

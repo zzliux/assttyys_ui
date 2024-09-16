@@ -145,6 +145,9 @@ const mockData: {
     saveSchemeList: function (_arg: any) {
         return 'success';
     },
+    removeScheme: function (_arg: any) {
+        return 'success';
+    },
     versionInfo: function (_arg: any) {
         return {
             storeVersion: '20240904_02',

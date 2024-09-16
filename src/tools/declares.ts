@@ -50,6 +50,10 @@ export type AutoWebTypes = {
         param: Scheme[],
         result: void
     },
+    removeScheme: {
+        param: Scheme,
+        result: string, // 'success'
+    }
     versionInfo: {
         param: void,
         result: {
