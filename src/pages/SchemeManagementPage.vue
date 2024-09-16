@@ -1,25 +1,32 @@
 <script setup lang='ts'>
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { AutoWeb } from '@/tools/AutoWeb';
 import Nav from '@/components/Nav.vue';
 import { FixedCollapse, FixedCollapaseItem } from '@/components/FixedCollapse';
 import type { Scheme } from '@/tools/declares';
 import SchemeItemCard from '@/components/SchemeItemCard.vue';
+import globalEmmiter from '@/tools/GlobalEventBus';
+import { categorySchemeList } from '@/tools/tools';
 
 onMounted(async () => {
     loadData();
 });
 
 const collapseVal = ref('用户方案');
+
+const schemeList = ref<Scheme[]>([]);
 const unstaredUserSchemeList = ref<Scheme[]>([]);
 const unstaredInnerSchemeList = ref<Scheme[]>([]);
 const staredSchemeList = ref<Scheme[]>([]);
+watch(schemeList, (newVal) => {
+    const data = categorySchemeList(newVal);
+    unstaredUserSchemeList.value = data.unstaredUserSchemeList;
+    unstaredInnerSchemeList.value = data.unstaredInnerSchemeList;
+    staredSchemeList.value = data.staredSchemeList;
+}, { deep: true })
 
 async function loadData() {
-    const res = await AutoWeb.autoPromise('getSchemeList');
-    unstaredUserSchemeList.value = res.filter(scheme => !scheme.star && !scheme.inner);
-    unstaredInnerSchemeList.value = res.filter(scheme => !scheme.star && scheme.inner);
-    staredSchemeList.value = res.filter(scheme => scheme.star);
+    schemeList.value = await AutoWeb.autoPromise('getSchemeList');
 }
 
 function schemeItemClick() {
@@ -32,6 +39,30 @@ function schemeItemLongClick(e: Event) {
     // TODO 方案的操作菜单
     console.log('schemeItemLongClick');
 }
+
+onMounted(() => {
+    globalEmmiter.on('Event.SchemeItemCard.Operation', (option) => {
+        if (option.type === 'copy') {
+            const copyIndex = schemeList.value.findIndex(item => item.schemeName === option.targetScheme.schemeName);
+            schemeList.value.splice(copyIndex + 1, 0, option.newScheme);
+        } else if (option.type === 'modify') {
+            const modifyIndex = schemeList.value.findIndex(item => item.schemeName === option.targetScheme.schemeName);
+            schemeList.value[modifyIndex] = option.newScheme;
+        } else if (option.type === 'remove') {
+            const toRemoveIndex = schemeList.value.findIndex(item => item.schemeName === option.targetScheme.schemeName);
+            schemeList.value.splice(toRemoveIndex, 1);
+        } else if (option.type === 'toTop') {
+            const toRemoveIndex = schemeList.value.findIndex(item => item.schemeName === option.targetScheme.schemeName);
+            schemeList.value.splice(toRemoveIndex, 1);
+            schemeList.value.unshift(option.newScheme);
+        }
+    });
+});
+
+
+onUnmounted(() => {
+    globalEmmiter.off('Event.SchemeItemCard.Operation')
+});
 
 </script>
 
@@ -57,13 +88,13 @@ function schemeItemLongClick(e: Event) {
                 <FixedCollapaseItem name="内置方案">
                     <template #header>内置方案</template>
                     <template #content>
-                        <SchemeItemCard v-for="scheme in unstaredInnerSchemeList"  :scheme="scheme" />
+                        <SchemeItemCard v-for="scheme in unstaredInnerSchemeList" :scheme="scheme" />
                     </template>
                 </FixedCollapaseItem>
             </FixedCollapse>
         </div>
         <div class="container-right">
-            <SchemeItemCard v-for="scheme in unstaredInnerSchemeList"  :scheme="scheme" />
+            <SchemeItemCard v-for="scheme in unstaredInnerSchemeList" :scheme="scheme" />
         </div>
     </div>
 </template>

@@ -4,7 +4,9 @@ import ItemCard from './ItemCard.vue';
 import { Menu } from '@element-plus/icons-vue';
 import globalEmmiter from '@/tools/GlobalEventBus';
 import { AutoWeb } from '@/tools/AutoWeb';
-
+import { ref } from 'vue';
+import SchemeEditDialog, { type onConfirmOption } from './SchemeEditDialog';
+import { ElMessage } from 'element-plus'
 
 const $props = defineProps<{
     scheme: Scheme
@@ -12,7 +14,7 @@ const $props = defineProps<{
 
 // 置顶
 const toTop = async () => {
-    // 啥也不做，通知父类对方案进行置顶
+    await AutoWeb.autoPromise('topScheme', $props.scheme);
     globalEmmiter.emit('Event.SchemeItemCard.Operation', {
         type: 'toTop',
         targetScheme: $props.scheme,
@@ -20,14 +22,40 @@ const toTop = async () => {
     });
 }
 
-// 复制
-const copy = async () => {
 
+const schemeEidtDialogVisiable = ref<boolean>(false);
+const schemeEditType = ref<'copy' | 'modify' | 'add'>();
+// 复制
+const copyBtnEvent = async () => {
+    schemeEditType.value = 'copy';
+    schemeEidtDialogVisiable.value = true;
 }
 
 // 修改
-const modify = async () => {
-    // 弹窗
+const modifyBtnEvent = async () => {
+    schemeEditType.value = 'modify';
+    schemeEidtDialogVisiable.value = true;
+}
+
+const editDialogSaveEvent = async (option: onConfirmOption) => {
+    const { type, oldScheme, newScheme } = option;
+    const saveResult = await AutoWeb.autoPromise('saveScheme', {
+        oldScheme, newScheme, type
+    });
+    if (saveResult.error) {
+        ElMessage({
+            type: 'error',
+            message: saveResult.message,
+            plain: true,
+        })
+        return false;
+    }
+    globalEmmiter.emit('Event.SchemeItemCard.Operation', {
+        type: type as 'copy' | 'modify',
+        targetScheme: oldScheme,
+        newScheme: newScheme,
+    });
+    return true;
 }
 
 // 删除
@@ -55,8 +83,8 @@ const remove = async () => {
                 </template>
                 <template #default>
                     <el-link type="primary" @click="toTop">置顶</el-link><br />
-                    <el-link type="success" @click="copy">复制</el-link><br />
-                    <el-link type="warning" @click="modify">修改</el-link><br />
+                    <el-link type="success" @click="copyBtnEvent">复制</el-link><br />
+                    <el-link type="warning" @click="modifyBtnEvent">修改</el-link><br />
                     <el-popconfirm title="确认是否删除" @confirm="remove" confirm-button-text="确认" cancel-button-text="取消">
                         <template #reference>
                             <el-link type="danger">删除</el-link>
@@ -66,6 +94,8 @@ const remove = async () => {
             </el-popover>
         </div>
     </ItemCard>
+    <SchemeEditDialog v-if="schemeEidtDialogVisiable" v-model="schemeEidtDialogVisiable" :scheme="$props.scheme"
+        :type="schemeEditType" @confirm="editDialogSaveEvent" />
 </template>
 
 <style scoped>

@@ -1,3 +1,4 @@
+import type { onConfirmOption as onSchemeSaveConfirmOption } from "@/components/SchemeEditDialog";
 import type { Scheme } from "./declares";
 
 const mockData: {
@@ -139,7 +140,18 @@ const mockData: {
             referred: false
         }]
     },
-    saveScheme: function (_arg: any) {
+    saveScheme: function (option: onSchemeSaveConfirmOption) {
+        const error = Math.random() > 0.5 ? 1 : 0;
+        if (error) {
+            return {
+                error, message: `保存失败，方案[${option.newScheme.schemeName}]已存在。`
+            }
+        }
+        return {
+            error: 0
+        }
+    },
+    topScheme: function (_arg: any) {
         return 'success';
     },
     saveSchemeList: function (_arg: any) {
@@ -473,10 +485,10 @@ const mockData: {
     scheduleChange: null,
     getGroupNames: function (_arg: any) {
         const savedSchemeList = this['getSchemeList'];
-        const groupNamesMap = {};
-        // savedSchemeList.forEach(s => {
-        //     if (s.groupName) groupNamesMap[s.groupName] = 1;
-        // });
+        const groupNamesMap:Record<string, number> = {};
+        savedSchemeList.forEach((s: Scheme) => {
+            if (s.groupName) groupNamesMap[s.groupName] = 1;
+        });
         return Object.keys(groupNamesMap);
     },
     clearStorage: null,

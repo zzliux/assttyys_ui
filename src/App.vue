@@ -6,7 +6,6 @@ const statusBarHeight = ref<number>(0);
 
 onMounted(async () => {
     statusBarHeight.value = await AutoWeb.autoPromise('getStatusBarHeight');
-    console.log(statusBarHeight.value);
 });
 
 </script>

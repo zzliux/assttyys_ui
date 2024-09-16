@@ -36,7 +36,7 @@ export const AutoWeb = {
         }
     },
 
-    autoPromise<Key extends keyof AutoWebTypes>(eventname: Key, params?: AutoWebTypes[Key]['param'], timeout = 10000): Promise<AutoWebTypes[Key]['result']> {
+    autoPromise<Key extends keyof AutoWebTypes>(eventname: Key, params?: AutoWebTypes[Key]['param'], timeout = 30000): Promise<AutoWebTypes[Key]['result']> {
         return new Promise((resolve, reject) => {
             const tmid = setTimeout(() => {
                 reject(new Error('timeout'));

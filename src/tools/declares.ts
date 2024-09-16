@@ -1,3 +1,5 @@
+import type { onConfirmOption as onSchemeSaveConfirmOption } from "@/components/SchemeEditDialog";
+
 export type Scheme = {
     id: number;
     schemeName: string;
@@ -34,6 +36,10 @@ export type AutoWebTypes = {
         param: string,
         result: Scheme
     },
+    getGroupNames: {
+        param: void,
+        result: string[]
+    }
     getDefaultScheme: {
         param: string,
         result: Scheme
@@ -43,13 +49,17 @@ export type AutoWebTypes = {
         result: Scheme[]
     },
     saveScheme: {
-        param: Scheme,
-        result: void
+        param: onSchemeSaveConfirmOption
+        result: { error: number, message: string }
     },
     saveSchemeList: {
         param: Scheme[],
         result: void
     },
+    topScheme: {
+        param: Scheme,
+        result: void
+    }
     removeScheme: {
         param: Scheme,
         result: string, // 'success'
