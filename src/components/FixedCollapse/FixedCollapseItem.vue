@@ -27,15 +27,17 @@ onMounted(() => {
     const parentHeight = parentContainerDom.offsetHeight;
     const singleHeight = singleDoms[0].clientHeight;
     const singleCounts = singleDoms.length;
-    const height = parentHeight - singleHeight * singleCounts;
+    const height = parentHeight - singleHeight * singleCounts - 4;
     function modelChangeEvent(val: string) {
         const [instanceNamespace, name] = val.split(':');
         if (instanceNamespace !== namespace) return;
         if (val === `${namespace}:${$props.name}`) {
             contentDomRef.value.style.height = `${height}px`;
+            contentDomRef.value.style.padding = '2px';
             isOpen.value = true;
         } else {
             contentDomRef.value.style.height = `0px`;
+            contentDomRef.value.style.padding = '0px';
             isOpen.value = false;
         }
     }
@@ -78,7 +80,7 @@ onUnmounted(() => {
 .fixedCollapseItem-header-text,
 .fixedCollapseItem-header-icon {
     display: flex;
-    transition: all .2s linear;
+    transition: all .2s ease-in-out;
 }
 
 .fixedCollapseItem-header.open .fixedCollapseItem-header-icon {
@@ -86,9 +88,13 @@ onUnmounted(() => {
 }
 
 .fixedCollapseItem-content {
-    transition: height .2s linear;
+    transition: all .2s ease-in-out;
     overflow: auto;
     height: 0px;
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    align-content: flex-start;
 }
 
 .fixedCollapseItem-content.open {

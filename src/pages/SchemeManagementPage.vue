@@ -5,28 +5,29 @@ import Nav from '@/components/Nav.vue';
 import { FixedCollapse, FixedCollapaseItem } from '@/components/FixedCollapse';
 import type { Scheme } from '@/tools/declares';
 import SchemeItemCard from '@/components/SchemeItemCard.vue';
+import ItemCard from '@/components/ItemCard.vue';
 import globalEmmiter from '@/tools/GlobalEventBus';
-import { categorySchemeList } from '@/tools/tools';
+import { groupSchemeList } from '@/tools/tools';
+import { Plus } from '@element-plus/icons-vue'
+import SchemeEditDialog from '@/components/SchemeEditDialog/SchemeEditDialog.vue';
+import { ElMessage } from 'element-plus';
+import type { onConfirmOption } from '@/components/SchemeEditDialog';
 
 onMounted(async () => {
     loadData();
 });
 
-const collapseValLeft = ref('未收藏方案-用户方案');
-const collapseValRight = ref('已收藏方案');
+const collapseVal = ref('未分组');
 
 const schemeList = ref<Scheme[]>([]);
-const unstaredUserSchemeList = ref<Scheme[]>([]);
-const unstaredInnerSchemeList = ref<Scheme[]>([]);
-const staredSchemeList = ref<Scheme[]>([]);
+const groupNames = ref<string[]>([]);
+const groupedSchemeList = ref<Record<string, Scheme[]>>({});
 watch(schemeList, (newVal) => {
-    const data = categorySchemeList(newVal);
-    unstaredUserSchemeList.value = data.unstaredUserSchemeList;
-    unstaredInnerSchemeList.value = data.unstaredInnerSchemeList;
-    staredSchemeList.value = data.staredSchemeList;
+    groupedSchemeList.value = groupSchemeList(newVal);
 }, { deep: true })
 
 async function loadData() {
+    groupNames.value = await AutoWeb.autoPromise('getGroupNames');
     schemeList.value = await AutoWeb.autoPromise('getSchemeList');
 }
 
@@ -35,11 +36,6 @@ function schemeItemClick() {
     console.log('schemeItemClick');
 }
 
-function schemeItemLongClick(e: Event) {
-    console.log(e);
-    // TODO 方案的操作菜单
-    console.log('schemeItemLongClick');
-}
 
 onMounted(() => {
     globalEmmiter.on('Event.SchemeItemCard.Operation', (option) => {
@@ -65,37 +61,63 @@ onUnmounted(() => {
     globalEmmiter.off('Event.SchemeItemCard.Operation')
 });
 
+const newScheme = ref<Scheme>();
+const newSchemeEditDialogShown = ref(false);
+const addSchemeItemEvent = (groupName: string) => {
+    newScheme.value = {
+        id: schemeList.value.reduce((maxId, scheme) => scheme.id > maxId ? scheme.id : maxId, 0) + 1,
+        schemeName: '',
+        star: false,
+        list: [],
+        groupNames: [groupName],
+        config: {},
+        commonConfig: {}
+    }
+    newSchemeEditDialogShown.value = true;
+}
+const addSchemeConfirmEvent = async (option: onConfirmOption) => {
+    const { newScheme, type } = option;
+    const saveResult = await AutoWeb.autoPromise('saveScheme', {
+        newScheme, type
+    });
+    if (saveResult.error) {
+        ElMessage({
+            type: 'error',
+            message: saveResult.message,
+            plain: true,
+        })
+        return false;
+    }
+    schemeList.value.push(newScheme);
+    return true;
+}
+
 </script>
 
 <template>
     <Nav name="方案管理" />
     <div class="container">
-        <div class="container-left">
-            <FixedCollapse v-model="collapseValLeft">
-                <FixedCollapaseItem name="未收藏方案-用户方案">
-                    <template #header>未收藏方案-用户方案</template>
-                    <template #content>
-                        <SchemeItemCard v-for="scheme in unstaredUserSchemeList" :scheme="scheme" />
-                    </template>
-                </FixedCollapaseItem>
-                <FixedCollapaseItem name="未收藏方案-内置方案">
-                    <template #header>未收藏方案-内置方案</template>
-                    <template #content>
-                        <SchemeItemCard v-for="scheme in unstaredInnerSchemeList" :scheme="scheme" />
-                    </template>
-                </FixedCollapaseItem>
-            </FixedCollapse>
-        </div>
-        <div class="container-right">
-            <FixedCollapse v-model="collapseValRight">
-                <FixedCollapaseItem name="已收藏方案">
-                    <template #header>已收藏方案</template>
-                    <template #content>
-                        <SchemeItemCard v-for="scheme in staredSchemeList" :scheme="scheme" />
-                    </template>
-                </FixedCollapaseItem>
-            </FixedCollapse>
-        </div>
+        <FixedCollapse v-model="collapseVal">
+            <FixedCollapaseItem v-for="groupName in groupNames" :name="groupName">
+                <template #header>{{ groupName }}</template>
+                <template #content>
+                    <div v-for="scheme in groupedSchemeList[groupName]" style="display: flex; width: 50%;">
+                        <SchemeItemCard :scheme="scheme" />
+                    </div>
+                    <div style="display: flex; width: 50%;">
+                        <ItemCard>
+                            <div class="item-card-addscheme" @click="addSchemeItemEvent(groupName)">
+                                <el-text><el-icon>
+                                        <Plus />
+                                    </el-icon> 添加方案</el-text>
+                            </div>
+                        </ItemCard>
+                    </div>
+                </template>
+            </FixedCollapaseItem>
+        </FixedCollapse>
+        <SchemeEditDialog v-if="newSchemeEditDialogShown" v-model="newSchemeEditDialogShown" :scheme="newScheme"
+            @confirm="addSchemeConfirmEvent" type="add" />
     </div>
 </template>
 
@@ -108,9 +130,16 @@ onUnmounted(() => {
 
 .container-left,
 .container-right {
-    width: 50%;
+    width: 100%;
     height: 100%;
     overflow: auto;
     box-shadow: 0px 0px 1px 0px rgba(0, 0, 0, 0.1);
+}
+
+.item-card-addscheme {
+    width: 100%;
+    text-align: center;
+    display: flex;
+    justify-content: center;
 }
 </style>

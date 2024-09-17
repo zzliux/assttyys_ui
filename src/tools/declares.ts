@@ -3,7 +3,7 @@ import type { onConfirmOption as onSchemeSaveConfirmOption } from "@/components/
 export type Scheme = {
     id: number;
     schemeName: string;
-    groupName?: string;
+    groupNames?: string[];
     inner?: boolean;
     star?: boolean;
 

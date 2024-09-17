@@ -8,25 +8,26 @@ export const uuid = () => {
     return tempId.substring(tempId.lastIndexOf("/") + 1)
 }
 
-export const categorySchemeList = (schemeList: Scheme[]) => {
-    const unstaredUserSchemeList = [];
-    const unstaredInnerSchemeList = [];
-    const staredSchemeList = [];
+export const groupSchemeList = (schemeList: Scheme[]): Record<string, Scheme[]> => {
+    const ret: Record<string, Scheme[]> = {};
     for (let i = 0; i < schemeList.length; i++) {
         const scheme = schemeList[i];
-        if (scheme.star) {
-            staredSchemeList.push(scheme);
-        } else if (!scheme.star && !scheme.inner) {
-            unstaredUserSchemeList.push(scheme);
-        } else if (!scheme.star && scheme.inner) {
-            unstaredInnerSchemeList.push(scheme);
+        if (scheme.groupNames?.length > 0) {
+            for (let j = 0; j < scheme.groupNames.length; j++) {
+                const groupName = scheme.groupNames[j];
+                if (!ret[groupName]) {
+                    ret[groupName] = [];
+                }
+                ret[groupName].push(scheme);
+            }
+        } else {
+            if (!ret['未分组']) {
+                ret['未分组'] = [];
+            }
+            ret['未分组'].push(scheme);
         }
     }
-    return {
-        unstaredUserSchemeList,
-        unstaredInnerSchemeList,
-        staredSchemeList,
-    };
+    return ret;
 }
 
 

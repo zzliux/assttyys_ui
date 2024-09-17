@@ -5,7 +5,7 @@ export default SchemeEditDialog;
 
 export type editType = 'copy' | 'modify' | 'add';
 export type onConfirmOption = {
-    oldScheme: Scheme,
+    oldScheme?: Scheme,
     newScheme: Scheme,
     type: editType
 }

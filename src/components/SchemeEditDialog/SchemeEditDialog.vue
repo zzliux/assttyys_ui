@@ -28,23 +28,23 @@ const confirmBtnEvent = async () => {
 const editTypeToTitle = (type: editType) => {
     switch (type) {
         case 'copy':
-            return '复制方案';
+            return '复制方案：';
         case 'modify':
-            return '修改方案';
+            return '修改方案：';
         case 'add':
             return '新增方案';
     }
 }
 </script>
 <template>
-    <el-dialog v-model="model" :title="`${editTypeToTitle($props.type)}：${$props.scheme.schemeName}`" :width="480">
+    <el-dialog v-model="model" :title="`${editTypeToTitle($props.type)}${$props.scheme.schemeName}`" :width="480">
         <template #default>
             <el-form :model="dataScheme">
                 <el-form-item label="方案名" :label-width="80">
                     <el-input v-model="dataScheme.schemeName" autocomplete="off" />
                 </el-form-item>
                 <el-form-item label="分组名" :label-width="80">
-                    <el-select v-model="dataScheme.groupName" placeholder="输入或选择分组名" allow-create filterable clearable>
+                    <el-select v-model="dataScheme.groupNames" placeholder="输入或选择分组名" allow-create filterable clearable multiple>
                         <el-option v-for="(item, _index) in groupNames" :label="item" :value="item" />
                     </el-select>
                 </el-form-item>

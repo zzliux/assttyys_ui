@@ -1,2 +1,3 @@
 1. 新增auto事件removeScheme，传入scheme对象，需根据scheme.schemeName查找已存在的scheme并删除；
-2. 修改auto事件saveScheme，传入oldScheme对象、newScheme对象与type:add|modify|copy，根据type对scheme进行验证
+2. 修改auto事件saveScheme，传入oldScheme对象、newScheme对象与type:add|modify|copy，根据type对scheme进行验证；
+3. Scheme.groupName修改为groupNames，由原来的可选string修改为string[]，getSchemeList时需对历史数据进行转换，getGroupNames重写；
