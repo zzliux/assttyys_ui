@@ -75,6 +75,7 @@ const remove = async () => {
             <el-text>{{ $props.scheme.schemeName }}</el-text>
         </div>
         <div class="item-operation">
+            <slot name="operation-left"></slot>
             <el-popover placement="left" :width="55" trigger="click" popper-class="scheme-item-operation">
                 <template #reference>
                     <el-link>
@@ -94,6 +95,7 @@ const remove = async () => {
                     </el-popconfirm>
                 </template>
             </el-popover>
+            <slot name="operation-right"></slot>
         </div>
     </ItemCard>
     <SchemeEditDialog v-if="schemeEidtDialogVisiable" v-model="schemeEidtDialogVisiable" :scheme="$props.scheme"

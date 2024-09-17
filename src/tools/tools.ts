@@ -30,6 +30,10 @@ export const groupSchemeList = (schemeList: Scheme[]): Record<string, Scheme[]> 
     return ret;
 }
 
+// TODO
+export const unGroupSchemeList = (groupedSchemeList: Record<string, Scheme[]>): Scheme[] => {
+  
+}
 
 
 export const deepClone = <T>(obj: T): T => {

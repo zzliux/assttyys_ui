@@ -494,6 +494,9 @@ const mockData: {
         });
         return Array.from(groupNames);
     },
+    saveGroupNames: function (groupNames: string[]) {
+        return 'success';
+    },
     clearStorage: null,
     exit: null,
     setScheduleLazyMode: 'success',

@@ -1,5 +1,5 @@
 <script setup lang='ts'>
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { AutoWeb } from '@/tools/AutoWeb';
 import Nav from '@/components/Nav.vue';
 import { FixedCollapse, FixedCollapaseItem } from '@/components/FixedCollapse';
@@ -8,10 +8,11 @@ import SchemeItemCard from '@/components/SchemeItemCard.vue';
 import ItemCard from '@/components/ItemCard.vue';
 import globalEmmiter from '@/tools/GlobalEventBus';
 import { groupSchemeList } from '@/tools/tools';
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Sort } from '@element-plus/icons-vue'
 import SchemeEditDialog from '@/components/SchemeEditDialog/SchemeEditDialog.vue';
 import { ElMessage } from 'element-plus';
 import type { onConfirmOption } from '@/components/SchemeEditDialog';
+import draggable from '@marshallswain/vuedraggable';
 
 onMounted(async () => {
     loadData();
@@ -21,13 +22,36 @@ const collapseVal = ref('未分组');
 
 const schemeList = ref<Scheme[]>([]);
 const groupNames = ref<string[]>([]);
+const groupNamesDragList = computed<{ label: string }[]>({
+    get() {
+        return groupNames.value.map((groupName: string) => ({ label: groupName }));
+    },
+    set(newVal) {
+        groupNames.value = newVal.map((item) => item.label);
+    }
+});
 const groupedSchemeList = ref<Record<string, Scheme[]>>({});
 watch(schemeList, (newVal) => {
     groupedSchemeList.value = groupSchemeList(newVal);
-}, { deep: true })
+}, { deep: true });
+watch(groupedSchemeList, (newVal, oldVal) => {
+    // TODO
+}, { deep: true });
+
+// const groupedSchemeList = computed({
+//     get() {
+//         return groupSchemeList(schemeList.value);
+//     },
+//     set(newVal) {
+//         // TODO
+//         console.log(newVal);
+//     }
+// });
+
 
 async function loadData() {
     groupNames.value = await AutoWeb.autoPromise('getGroupNames');
+    console.log(groupNamesDragList.value);
     schemeList.value = await AutoWeb.autoPromise('getSchemeList');
 }
 
@@ -91,6 +115,27 @@ const addSchemeConfirmEvent = async (option: onConfirmOption) => {
     schemeList.value.push(newScheme);
     return true;
 }
+const dragOptions = computed({
+    get() {
+        return {
+            animation: 200,
+            group: 'description',
+            disabled: false,
+            ghostClass: 'ghost',
+        };
+    },
+    set(val) { }
+});
+
+const groupNamesDragEndEvent = async () => {
+    await AutoWeb.autoPromise('saveGroupNames', groupNames.value);
+}
+
+const schemeListDragEndEvent = async () => {
+    // TODO
+    console.log('schemeListDragEndEvent', schemeList.value);
+}
+
 
 </script>
 
@@ -98,23 +143,48 @@ const addSchemeConfirmEvent = async (option: onConfirmOption) => {
     <Nav name="方案管理" />
     <div class="container">
         <FixedCollapse v-model="collapseVal">
-            <FixedCollapaseItem v-for="groupName in groupNames" :name="groupName">
-                <template #header>{{ groupName }}</template>
-                <template #content>
-                    <div v-for="scheme in groupedSchemeList[groupName]" style="display: flex; width: 50%;">
-                        <SchemeItemCard :scheme="scheme" />
-                    </div>
-                    <div style="display: flex; width: 50%;">
-                        <ItemCard>
-                            <div class="item-card-addscheme" @click="addSchemeItemEvent(groupName)">
-                                <el-text><el-icon>
-                                        <Plus />
-                                    </el-icon> 添加方案</el-text>
-                            </div>
-                        </ItemCard>
-                    </div>
+            <draggable :force-fallback="true" v-model="groupNamesDragList" item-key="label"
+                handle=".fixedCollapseItem-header" v-bind="dragOptions" @end="groupNamesDragEndEvent"
+                :group="{ name: 'groupNames' }">
+                <template #item="{ element: groupNamesDragElement, index }">
+                    <FixedCollapaseItem :name="groupNamesDragElement.label">
+                        <template #header>{{ groupNamesDragElement.label }}</template>
+                        <template #content>
+                            <draggable :force-fallback="true" v-model="groupedSchemeList[groupNamesDragElement.label]"
+                                item-key="label" handle=".drag-item-card-scheme-handle" v-bind="dragOptions"
+                                @end="schemeListDragEndEvent" class="drag-item-card-scheme-container"
+                                :group="{ name: groupNamesDragElement.label }">
+                                <template #item="{ element: scheme, index }">
+                                    <div class="drag-item-card-scheme">
+                                        <SchemeItemCard :scheme="scheme">
+                                            <template #operation-left>
+                                                <el-link style="margin-right: 10px"
+                                                    class="drag-item-card-scheme-handle">
+                                                    <el-icon>
+                                                        <Sort />
+                                                    </el-icon>
+                                                </el-link>
+                                            </template>
+                                        </SchemeItemCard>
+                                    </div>
+                                </template>
+                                <template #footer>
+                                    <div style="display: flex; width: 50%;">
+                                        <ItemCard>
+                                            <div class="item-card-addscheme"
+                                                @click="addSchemeItemEvent(groupNamesDragElement.label)">
+                                                <el-text><el-icon>
+                                                        <Plus />
+                                                    </el-icon> 添加方案</el-text>
+                                            </div>
+                                        </ItemCard>
+                                    </div>
+                                </template>
+                            </draggable>
+                        </template>
+                    </FixedCollapaseItem>
                 </template>
-            </FixedCollapaseItem>
+            </draggable>
         </FixedCollapse>
         <SchemeEditDialog v-if="newSchemeEditDialogShown" v-model="newSchemeEditDialogShown" :scheme="newScheme"
             @confirm="addSchemeConfirmEvent" type="add" />
@@ -141,5 +211,16 @@ const addSchemeConfirmEvent = async (option: onConfirmOption) => {
     text-align: center;
     display: flex;
     justify-content: center;
+}
+
+.drag-item-card-scheme-container {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.drag-item-card-scheme {
+    display: flex;
+    width: 50%;
 }
 </style>
