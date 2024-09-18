@@ -26,7 +26,10 @@ onMounted(() => {
 		emitFlag = true;
 		model.value = name;
 	});
-	emitter.emit('Event.FixedCollapse.ModelUpdate', `${instanceNamespace}:${model.value}`);
+    // 父比子先挂载，等子挂载完了再发送父的model更新事件
+    setTimeout(() => {
+        emitter.emit('Event.FixedCollapse.ModelUpdate', `${instanceNamespace}:${model.value}`);
+    }, 0)
 });
 
 onUnmounted(() => {
