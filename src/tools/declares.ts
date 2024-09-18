@@ -3,7 +3,7 @@ import type { onConfirmOption as onSchemeSaveConfirmOption } from "@/components/
 export type Scheme = {
     id: number;
     schemeName: string;
-    groupNames?: string[];
+    groupNames: string[]; // 该属性方案本身不存，由GroupSchemeNames关联而来
     inner?: boolean;
     star?: boolean;
 
@@ -21,6 +21,11 @@ export type Scheme = {
     };
 }
 
+export type GroupSchemeName = {
+    groupName: string,
+    schemeNames: string[]
+}
+
 
 // 定义AutoWeb.autoPromise/auto的参数类型和响应类型
 export type AutoWebTypes = {
@@ -36,10 +41,10 @@ export type AutoWebTypes = {
         param: string,
         result: Scheme
     },
-    getGroupNames: {
+    getGroupSchemeNames: {
         param: void,
-        result: string[]
-    }
+        result: GroupSchemeName[]
+    },
     getDefaultScheme: {
         param: string,
         result: Scheme
@@ -56,8 +61,8 @@ export type AutoWebTypes = {
         param: Scheme[],
         result: void
     },
-    saveGroupNames: {
-        param: string[],
+    saveGroupSchemeNames: {
+        param: GroupSchemeName[],
         result: void
     },
     topScheme: {

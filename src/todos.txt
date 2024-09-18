@@ -1,3 +1,4 @@
 1. 新增auto事件removeScheme，传入scheme对象，需根据scheme.schemeName查找已存在的scheme并删除；
 2. 修改auto事件saveScheme，传入oldScheme对象、newScheme对象与type:add|modify|copy，根据type对scheme进行验证；
-3. Scheme.groupName修改为groupNames，由原来的可选string修改为string[]，getSchemeList时需对历史数据进行转换，getGroupNames重写；
+3. 设计一个新的数据结构，用于关联方案和分组，后续方案和该数据结构进行关联返回给前端使用，重新排序后对该数据进行更新，groupSchemeNames = { groupName: string, schemeNames: string[] }[]
+4. Scheme.groupName修改为groupNames，由原来的可选string修改为string[]，getSchemeList时需对历史数据进行转换，getGroupNames重写；

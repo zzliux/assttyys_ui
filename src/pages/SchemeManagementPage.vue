@@ -3,12 +3,12 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { AutoWeb } from '@/tools/AutoWeb';
 import Nav from '@/components/Nav.vue';
 import { FixedCollapse, FixedCollapaseItem } from '@/components/FixedCollapse';
-import type { Scheme } from '@/tools/declares';
+import type { GroupSchemeName, Scheme } from '@/tools/declares';
 import SchemeItemCard from '@/components/SchemeItemCard.vue';
 import ItemCard from '@/components/ItemCard.vue';
 import globalEmmiter from '@/tools/GlobalEventBus';
-import { groupSchemeList } from '@/tools/tools';
-import { Plus, Sort } from '@element-plus/icons-vue'
+import { groupedSchemeListToGroupSchemeNames, groupSchemeList } from '@/tools/tools';
+import { Plus, Sort, Star, StarFilled } from '@element-plus/icons-vue'
 import SchemeEditDialog from '@/components/SchemeEditDialog/SchemeEditDialog.vue';
 import { ElMessage } from 'element-plus';
 import type { onConfirmOption } from '@/components/SchemeEditDialog';
@@ -21,38 +21,14 @@ onMounted(async () => {
 const collapseVal = ref('未分组');
 
 const schemeList = ref<Scheme[]>([]);
-const groupNames = ref<string[]>([]);
-const groupNamesDragList = computed<{ label: string }[]>({
-    get() {
-        return groupNames.value.map((groupName: string) => ({ label: groupName }));
-    },
-    set(newVal) {
-        groupNames.value = newVal.map((item) => item.label);
-    }
-});
+const groupSchemeNames = ref<GroupSchemeName[]>([]);
 const groupedSchemeList = ref<Record<string, Scheme[]>>({});
-watch(schemeList, (newVal) => {
-    groupedSchemeList.value = groupSchemeList(newVal);
-}, { deep: true });
-watch(groupedSchemeList, (newVal, oldVal) => {
-    // TODO
-}, { deep: true });
-
-// const groupedSchemeList = computed({
-//     get() {
-//         return groupSchemeList(schemeList.value);
-//     },
-//     set(newVal) {
-//         // TODO
-//         console.log(newVal);
-//     }
-// });
-
 
 async function loadData() {
-    groupNames.value = await AutoWeb.autoPromise('getGroupNames');
-    console.log(groupNamesDragList.value);
+    groupSchemeNames.value = await AutoWeb.autoPromise('getGroupSchemeNames');
     schemeList.value = await AutoWeb.autoPromise('getSchemeList');
+    groupedSchemeList.value = groupSchemeList(groupSchemeNames.value, schemeList.value);
+    console.log(groupedSchemeList.value);
 }
 
 function schemeItemClick() {
@@ -115,6 +91,15 @@ const addSchemeConfirmEvent = async (option: onConfirmOption) => {
     schemeList.value.push(newScheme);
     return true;
 }
+
+const starBtnEvent = async (scheme: Scheme) => {
+    scheme.star = !scheme.star;
+    await AutoWeb.autoPromise('saveScheme', {
+        newScheme: scheme,
+        type: 'modify'
+    });
+}
+
 const dragOptions = computed({
     get() {
         return {
@@ -128,12 +113,12 @@ const dragOptions = computed({
 });
 
 const groupNamesDragEndEvent = async () => {
-    await AutoWeb.autoPromise('saveGroupNames', groupNames.value);
+    await AutoWeb.autoPromise('saveGroupSchemeNames', groupSchemeNames.value);
 }
 
 const schemeListDragEndEvent = async () => {
-    // TODO
-    console.log('schemeListDragEndEvent', schemeList.value);
+    const groupSchemeNames = groupedSchemeListToGroupSchemeNames(groupedSchemeList.value);
+    await AutoWeb.autoPromise('saveGroupSchemeNames', groupSchemeNames);
 }
 
 
@@ -143,27 +128,34 @@ const schemeListDragEndEvent = async () => {
     <Nav name="方案管理" />
     <div class="container">
         <FixedCollapse v-model="collapseVal">
-            <draggable :force-fallback="true" v-model="groupNamesDragList" item-key="label"
+            <draggable :force-fallback="true" v-model="groupSchemeNames" item-key="groupName"
                 handle=".fixedCollapseItem-header" v-bind="dragOptions" @end="groupNamesDragEndEvent"
                 :group="{ name: 'groupNames' }">
-                <template #item="{ element: groupNamesDragElement, index }">
-                    <FixedCollapaseItem :name="groupNamesDragElement.label">
-                        <template #header>{{ groupNamesDragElement.label }}</template>
+                <template #item="{ element: groupSchemeName, index }">
+                    <FixedCollapaseItem :name="groupSchemeName.groupName">
+                        <template #header>{{ groupSchemeName.groupName }}</template>
                         <template #content>
-                            <draggable :force-fallback="true" v-model="groupedSchemeList[groupNamesDragElement.label]"
+                            <draggable :force-fallback="true" v-model="groupedSchemeList[groupSchemeName.groupName]"
                                 item-key="label" handle=".drag-item-card-scheme-handle" v-bind="dragOptions"
                                 @end="schemeListDragEndEvent" class="drag-item-card-scheme-container"
-                                :group="{ name: groupNamesDragElement.label }">
+                                :group="{ name: groupSchemeName.groupName }">
                                 <template #item="{ element: scheme, index }">
                                     <div class="drag-item-card-scheme">
                                         <SchemeItemCard :scheme="scheme">
                                             <template #operation-left>
-                                                <el-link style="margin-right: 10px"
+                                                <el-text @click="starBtnEvent(scheme)" style="margin-right: 10px;">
+                                                    <el-icon>
+                                                        <!-- 默认的实心五星图标比空心小一圈，让它俩叠加以达到视觉大小一致 -->
+                                                        <Star style="position: absolute; top: 0; left: 0" />
+                                                        <StarFilled v-if="scheme.star" />
+                                                    </el-icon>
+                                                </el-text>
+                                                <el-text style="margin-right: 10px"
                                                     class="drag-item-card-scheme-handle">
                                                     <el-icon>
                                                         <Sort />
                                                     </el-icon>
-                                                </el-link>
+                                                </el-text>
                                             </template>
                                         </SchemeItemCard>
                                     </div>
@@ -172,7 +164,7 @@ const schemeListDragEndEvent = async () => {
                                     <div style="display: flex; width: 50%;">
                                         <ItemCard>
                                             <div class="item-card-addscheme"
-                                                @click="addSchemeItemEvent(groupNamesDragElement.label)">
+                                                @click="addSchemeItemEvent(groupSchemeName.groupName)">
                                                 <el-text><el-icon>
                                                         <Plus />
                                                     </el-icon> 添加方案</el-text>

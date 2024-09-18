@@ -1,4 +1,4 @@
-import type { Scheme } from "./declares";
+import type { GroupSchemeName, Scheme } from "./declares";
 
 // 非时间种子的随机数
 export const uuid = () => {
@@ -8,19 +8,20 @@ export const uuid = () => {
     return tempId.substring(tempId.lastIndexOf("/") + 1)
 }
 
-export const groupSchemeList = (schemeList: Scheme[]): Record<string, Scheme[]> => {
+export const groupSchemeList = (groupSchemeNames: GroupSchemeName[], schemeList: Scheme[]): Record<string, Scheme[]> => {
     const ret: Record<string, Scheme[]> = {};
-    for (let i = 0; i < schemeList.length; i++) {
-        const scheme = schemeList[i];
-        if (scheme.groupNames?.length > 0) {
-            for (let j = 0; j < scheme.groupNames.length; j++) {
-                const groupName = scheme.groupNames[j];
-                if (!ret[groupName]) {
-                    ret[groupName] = [];
+    for (let scheme of schemeList) {
+        let flag = false;
+        for (let groupSchemeName of groupSchemeNames) {
+            if (groupSchemeName.schemeNames.includes(scheme.schemeName)) {
+                flag = true;
+                if (!ret[groupSchemeName.groupName]) {
+                    ret[groupSchemeName.groupName] = [];
                 }
-                ret[groupName].push(scheme);
+                ret[groupSchemeName.groupName].push(scheme);
             }
-        } else {
+        }
+        if (!flag) {
             if (!ret['未分组']) {
                 ret['未分组'] = [];
             }
@@ -30,9 +31,13 @@ export const groupSchemeList = (schemeList: Scheme[]): Record<string, Scheme[]> 
     return ret;
 }
 
-// TODO
-export const unGroupSchemeList = (groupedSchemeList: Record<string, Scheme[]>): Scheme[] => {
-  
+export const groupedSchemeListToGroupSchemeNames = (groupedSchemeList: Record<string, Scheme[]>): GroupSchemeName[] => {
+    return Object.keys(groupedSchemeList).map(key => {
+        return {
+            groupName: key,
+            schemeNames: groupedSchemeList[key].map(scheme => scheme.schemeName)
+        }
+    });
 }
 
 

@@ -1,5 +1,5 @@
 import type { onConfirmOption as onSchemeSaveConfirmOption } from "@/components/SchemeEditDialog";
-import type { Scheme } from "./declares";
+import type { GroupSchemeName, Scheme } from "./declares";
 
 const mockData: {
     [key: string]: any;
@@ -493,6 +493,100 @@ const mockData: {
             });
         });
         return Array.from(groupNames);
+    },
+    getGroupSchemeNames: function (): GroupSchemeName[] {
+        // const groupNames = this.getGroupNames();
+        // return groupNames.map((groupName: string) => {
+        //     return {
+        //         groupName,
+        //         schemeNames: this['getSchemeList']
+        //             .filter((item: Scheme) => item.groupNames?.includes(groupName))
+        //             .map((item: Scheme) => item.schemeName)
+        //     };
+        // });
+        return [
+            {
+                "groupName": "未分组",
+                "schemeNames": [
+                    "组队乘客",
+                    "通用准备退出",
+                    "组队司机",
+                    "个人御魂",
+                    "个人突破",
+                    "个人突破_降级",
+                    "寮突破",
+                    "个人探索",
+                    "组队探索_队长",
+                    "组队探索_打手",
+                    "地鬼日常",
+                    "逢魔日常",
+                    "百鬼夜行",
+                    "抽厕纸",
+                    "组队_自动匹配流程",
+                    "继续育成",
+                    "斗技",
+                    "结界卡_继续合成",
+                    "道馆",
+                    "秘闻",
+                    "悬赏",
+                    "金币妖怪",
+                    "宴会",
+                    "关闭BUFF",
+                    "开启BUFF_打探索",
+                    "悬赏_庭院打开悬赏界面",
+                    "返回庭院",
+                    "狩猎战",
+                    "庭院进入寮每日活动",
+                    "六道萤草",
+                    "伊吹之擂"
+                ]
+            },
+            {
+                "groupName": "切换方案样例",
+                "schemeNames": [
+                    "通用准备退出",
+                    "例_个人探索30次_转个人突破",
+                    "例_个人突破_结束后转寮突破"
+                ]
+            },
+            {
+                "groupName": "个人突破卡级",
+                "schemeNames": [
+                    "个人突破_卡级_进攻",
+                    "个人突破_卡级_退出"
+                ]
+            },
+            {
+                "groupName": "式神寄养",
+                "schemeNames": [
+                    "式神寄养",
+                    "定时任务-启动游戏-式神寄养"
+                ]
+            },
+            {
+                "groupName": "定时任务",
+                "schemeNames": [
+                    "式神指定寄养",
+                    "定时任务-启动游戏-每日寮活动"
+                ]
+            },
+            {
+                "groupName": "活动",
+                "schemeNames": [
+                    "活动_战场巡逻",
+                    "活动_战场探索",
+                    "活动_前线作战",
+                    "活动_不朽之木_三途轮回",
+                    "流火之擂",
+                    "红叶行狩",
+                    "活动_梦境徊游",
+                    "活动_梦旅竞速",
+                    "活动_风暴试炼",
+                    "化四季_小怪",
+                    "化四季_boss"
+                ]
+            }
+        ];
     },
     saveGroupNames: function (groupNames: string[]) {
         return 'success';
