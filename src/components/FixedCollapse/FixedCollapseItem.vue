@@ -23,15 +23,15 @@ onMounted(() => {
 
     const parentContainerDom = document.getElementById(`fixedCollapse-${namespace}`);
     const singleDoms = parentContainerDom.getElementsByClassName('fixedCollapseItem-header');
-
-    const parentHeight = parentContainerDom.offsetHeight;
-    const singleHeight = singleDoms[0].clientHeight;
-    const singleCounts = singleDoms.length;
-    const height = parentHeight - singleHeight * singleCounts - 4;
     function modelChangeEvent(val: string) {
         const [instanceNamespace, name] = val.split(':');
         if (instanceNamespace !== namespace) return;
         if (val === `${namespace}:${$props.name}`) {
+            const parentHeight = parentContainerDom.getBoundingClientRect().height;
+            const singleHeight = singleDoms[0].getBoundingClientRect().height;
+            const singleCounts = singleDoms.length;
+            const height = parentHeight - singleHeight * singleCounts;
+            
             contentDomRef.value.style.height = `${height}px`;
             contentDomRef.value.style.padding = '2px';
             isOpen.value = true;

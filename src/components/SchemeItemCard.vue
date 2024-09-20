@@ -9,22 +9,34 @@ import SchemeEditDialog, { type onConfirmOption } from './SchemeEditDialog';
 import { ElMessage } from 'element-plus'
 
 const $props = defineProps<{
-    scheme: Scheme
+    scheme: Scheme,
+    groupName: string,
 }>();
 
 // 置顶
 const toTop = async () => {
-    await AutoWeb.autoPromise('topScheme', $props.scheme);
+    const groupSchemeNames = await AutoWeb.autoPromise('getGroupSchemeNames');
+    for (let groupSchemeName of groupSchemeNames) {
+        if (groupSchemeName.groupName === $props.groupName) {
+            groupSchemeName.schemeNames.splice(groupSchemeName.schemeNames.indexOf($props.scheme.schemeName), 1);
+            groupSchemeName.schemeNames.unshift($props.scheme.schemeName);
+            break;
+        }
+    }
+    await AutoWeb.autoPromise('saveGroupSchemeNames', groupSchemeNames);
     globalEmmiter.emit('Event.SchemeItemCard.Operation', {
-        type: 'toTop',
+        type: 'reSort',
         targetScheme: $props.scheme,
-        newScheme: $props.scheme,
+        groupSchemeNames: groupSchemeNames,
     });
 }
 
 
 const schemeEidtDialogVisiable = ref<boolean>(false);
 const schemeEditType = ref<'copy' | 'modify' | 'add'>();
+const handlePopoverVisible = ref<boolean>(false);
+
+
 // 复制
 const copyBtnEvent = async () => {
     schemeEditType.value = 'copy';
@@ -58,14 +70,26 @@ const editDialogSaveEvent = async (option: onConfirmOption) => {
     return true;
 }
 
-// 删除
+// 删除，删除有点特别，仅删除分组与方案的关联，不删除方案，直到这个方案只有一个分组为止
 const remove = async () => {
-    await AutoWeb.autoPromise('removeScheme', $props.scheme);
+    if ($props.scheme.groupNames?.length === 1 && $props.scheme.groupNames[0] === $props.groupName) {
+        await AutoWeb.autoPromise('removeScheme', $props.scheme);
+    } else {
+        const groupSchemeNames = await AutoWeb.autoPromise('getGroupSchemeNames');
+        groupSchemeNames.find(groupSchemeName => {
+            if (groupSchemeName.groupName === $props.groupName) {
+                groupSchemeName.schemeNames.splice(groupSchemeName.schemeNames.indexOf($props.scheme.schemeName), 1);
+                return true;
+            }
+        });
+        await AutoWeb.autoPromise('saveGroupSchemeNames', groupSchemeNames);
+    }
     globalEmmiter.emit('Event.SchemeItemCard.Operation', {
         type: 'remove',
         targetScheme: $props.scheme,
     });
 }
+
 
 </script>
 
@@ -76,13 +100,13 @@ const remove = async () => {
         </div>
         <div class="item-operation">
             <slot name="operation-left"></slot>
-            <el-popover placement="left" :width="55" trigger="click" popper-class="scheme-item-operation">
+            <el-popover placement="left" :width="55" :visible="handlePopoverVisible" popper-class="scheme-item-operation">
                 <template #reference>
-                    <el-link>
+                    <el-button link @focus="handlePopoverVisible = true" @blur="handlePopoverVisible = false">
                         <el-icon>
                             <Operation />
                         </el-icon>
-                    </el-link>
+                    </el-button>
                 </template>
                 <template #default>
                     <el-link type="primary" @click="toTop">置顶</el-link><br />

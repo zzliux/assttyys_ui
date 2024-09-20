@@ -9,23 +9,17 @@ export const uuid = () => {
 }
 
 export const groupSchemeList = (groupSchemeNames: GroupSchemeName[], schemeList: Scheme[]): Record<string, Scheme[]> => {
+    const schemeListMap = schemeList.reduce((acc: Record<string, Scheme>, cur: Scheme) => {
+        acc[cur.schemeName] = cur;
+        return acc;
+    }, {});
     const ret: Record<string, Scheme[]> = {};
-    for (let scheme of schemeList) {
-        let flag = false;
-        for (let groupSchemeName of groupSchemeNames) {
-            if (groupSchemeName.schemeNames.includes(scheme.schemeName)) {
-                flag = true;
-                if (!ret[groupSchemeName.groupName]) {
-                    ret[groupSchemeName.groupName] = [];
-                }
-                ret[groupSchemeName.groupName].push(scheme);
-            }
+    for (let groupSchemeName of groupSchemeNames) {
+        if (!ret[groupSchemeName.groupName]) {
+            ret[groupSchemeName.groupName] = [];
         }
-        if (!flag) {
-            if (!ret['未分组']) {
-                ret['未分组'] = [];
-            }
-            ret['未分组'].push(scheme);
+        for (let schemeName of groupSchemeName.schemeNames) {
+            ret[groupSchemeName.groupName].push(schemeListMap[schemeName]);
         }
     }
     return ret;
@@ -54,4 +48,37 @@ export const deepClone = <T>(obj: T): T => {
     }
 
     return clone;
+}
+
+export const deepEqual = (a: any, b: any): boolean => {
+    // 如果两者都是对象或者数组，进行深度比较
+    if (typeof a === 'object' && typeof b === 'object') {
+        if (Array.isArray(a) !== Array.isArray(b)) {
+            return false;
+        }
+        if (a === null || b === null) {
+            return a === b;
+        }
+        if (a.prototype !== b.prototype) {
+            return false;
+        }
+
+        let keysA = Object.keys(a);
+        let keysB = Object.keys(b);
+
+        if (keysA.length !== keysB.length) {
+            return false;
+        }
+
+        for (let key of keysA) {
+            if (!keysB.includes(key) || !deepEqual(a[key], b[key])) {
+                return false;
+            }
+        }
+
+        return true;
+    } else {
+        // 如果不是对象或数组，直接比较值
+        return a === b;
+    }
 }

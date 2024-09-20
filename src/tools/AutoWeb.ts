@@ -1,5 +1,6 @@
+import { ElLoading } from "element-plus";
 import { type AutoWebTypes } from "./declares";
-import mockData from "./mockData";
+import MockMethod from "./Mocks/MockMethod";
 import { uuid } from "./tools";
 
 // 搞不定@auto.pro/web的编译毛病，直接copy过来了
@@ -37,13 +38,16 @@ export const AutoWeb = {
     },
 
     autoPromise<Key extends keyof AutoWebTypes>(eventname: Key, params?: AutoWebTypes[Key]['param'], timeout = 30000): Promise<AutoWebTypes[Key]['result']> {
+        const loadingInstance = ElLoading.service({ fullscreen: true })
         return new Promise((resolve, reject) => {
             const tmid = setTimeout(() => {
                 reject(new Error('timeout'));
+                loadingInstance.close();
             }, timeout);
             this.auto(eventname, params, (result: AutoWebTypes[Key]['result']) => {
                 clearTimeout(tmid);
                 resolve(result);
+                loadingInstance.close();
             });
         })
     }
@@ -53,16 +57,14 @@ export const AutoWeb = {
 // 调试模式
 if (localStorage.getItem('debug')) {
     (window as any)['promptMock'] = function <Key extends keyof AutoWebTypes>(key: Key, paramStr?: string) {
-        const param = JSON.parse(paramStr);
-        let result: any;
-        if (typeof mockData[key] === 'function') {
-            result = mockData[key](param.params);
-        } else {
-            result = mockData[key];
-        }
-        console.log(`[autoweb::request:${key}]`, param.params);
-        console.log(`[autoweb::request:${key}]`, result);
-        (window as any)[param.PROMPT_CALLBACK](result);
+        setTimeout(() => {
+            const param = JSON.parse(paramStr);
+            let result: any;
+            result = MockMethod[key](param.params);
+            console.log(`[autoweb::request:${key}]`, param.params);
+            console.log(`[autoweb::request:${key}]`, result);
+            (window as any)[param.PROMPT_CALLBACK](result);
+        }, Math.floor(Math.random() * 9999999) % 490 + 10); // 模拟异步延时
     };
     AutoWeb.setMode('promptMock')
 }

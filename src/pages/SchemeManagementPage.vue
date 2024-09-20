@@ -23,11 +23,19 @@ const collapseVal = ref('未分组');
 const schemeList = ref<Scheme[]>([]);
 const groupSchemeNames = ref<GroupSchemeName[]>([]);
 const groupedSchemeList = ref<Record<string, Scheme[]>>({});
+watch(groupSchemeNames, (newVal) => {
+    console.log('[groupSchemeNames] changed', newVal);
+    groupedSchemeList.value = groupSchemeList(newVal, schemeList.value);
+}, { deep: true });
+// watch(schemeList, (newVal) => {
+//     console.log('[schemeList] changed', newVal);
+//     groupedSchemeList.value = groupSchemeList(groupSchemeNames.value, newVal);
+// }, { deep: true });
 
 async function loadData() {
-    groupSchemeNames.value = await AutoWeb.autoPromise('getGroupSchemeNames');
     schemeList.value = await AutoWeb.autoPromise('getSchemeList');
-    groupedSchemeList.value = groupSchemeList(groupSchemeNames.value, schemeList.value);
+    groupSchemeNames.value = await AutoWeb.autoPromise('getGroupSchemeNames');
+    // groupedSchemeList.value = groupSchemeList(groupSchemeNames.value, schemeList.value);
     console.log(groupedSchemeList.value);
 }
 
@@ -39,20 +47,19 @@ function schemeItemClick() {
 
 onMounted(() => {
     globalEmmiter.on('Event.SchemeItemCard.Operation', (option) => {
-        if (option.type === 'copy') {
-            const copyIndex = schemeList.value.findIndex(item => item.schemeName === option.targetScheme.schemeName);
-            schemeList.value.splice(copyIndex + 1, 0, option.newScheme);
-        } else if (option.type === 'modify') {
-            const modifyIndex = schemeList.value.findIndex(item => item.schemeName === option.targetScheme.schemeName);
-            schemeList.value[modifyIndex] = option.newScheme;
-        } else if (option.type === 'remove') {
-            const toRemoveIndex = schemeList.value.findIndex(item => item.schemeName === option.targetScheme.schemeName);
-            schemeList.value.splice(toRemoveIndex, 1);
-        } else if (option.type === 'toTop') {
-            const toRemoveIndex = schemeList.value.findIndex(item => item.schemeName === option.targetScheme.schemeName);
-            schemeList.value.splice(toRemoveIndex, 1);
-            schemeList.value.unshift(option.newScheme);
-        }
+        loadData();
+        // if (option.type === 'copy') {
+        //     const copyIndex = schemeList.value.findIndex(item => item.schemeName === option.targetScheme.schemeName);
+        //     schemeList.value.splice(copyIndex + 1, 0, option.newScheme);
+        // } else if (option.type === 'modify') {
+        //     const modifyIndex = schemeList.value.findIndex(item => item.schemeName === option.targetScheme.schemeName);
+        //     schemeList.value[modifyIndex] = option.newScheme;
+        // } else if (option.type === 'remove') {
+        //     const toRemoveIndex = schemeList.value.findIndex(item => item.schemeName === option.targetScheme.schemeName);
+        //     schemeList.value.splice(toRemoveIndex, 1);
+        // } else if (option.type === 'reSort') {
+        //     groupSchemeNames.value = option.groupSchemeNames;
+        // }
     });
 });
 
@@ -95,6 +102,7 @@ const addSchemeConfirmEvent = async (option: onConfirmOption) => {
 const starBtnEvent = async (scheme: Scheme) => {
     scheme.star = !scheme.star;
     await AutoWeb.autoPromise('saveScheme', {
+        oldScheme: scheme,
         newScheme: scheme,
         type: 'modify'
     });
@@ -103,10 +111,10 @@ const starBtnEvent = async (scheme: Scheme) => {
 const dragOptions = computed({
     get() {
         return {
-            animation: 200,
-            group: 'description',
-            disabled: false,
-            ghostClass: 'ghost',
+            animation: 150,
+            // group: 'description',
+            // disabled: false,
+            // ghostClass: 'ghost',
         };
     },
     set(val) { }
@@ -117,8 +125,8 @@ const groupNamesDragEndEvent = async () => {
 }
 
 const schemeListDragEndEvent = async () => {
-    const groupSchemeNames = groupedSchemeListToGroupSchemeNames(groupedSchemeList.value);
-    await AutoWeb.autoPromise('saveGroupSchemeNames', groupSchemeNames);
+    const toSave = groupedSchemeListToGroupSchemeNames(groupedSchemeList.value);
+    await AutoWeb.autoPromise('saveGroupSchemeNames', toSave);
 }
 
 
@@ -129,19 +137,19 @@ const schemeListDragEndEvent = async () => {
     <div class="container">
         <FixedCollapse v-model="collapseVal">
             <draggable :force-fallback="true" v-model="groupSchemeNames" item-key="groupName"
-                handle=".fixedCollapseItem-header" v-bind="dragOptions" @end="groupNamesDragEndEvent"
+                handle=".fixedCollapseItem-header" v-bind="dragOptions" @update="groupNamesDragEndEvent"
                 :group="{ name: 'groupNames' }">
                 <template #item="{ element: groupSchemeName, index }">
                     <FixedCollapaseItem :name="groupSchemeName.groupName">
                         <template #header>{{ groupSchemeName.groupName }}</template>
                         <template #content>
                             <draggable :force-fallback="true" v-model="groupedSchemeList[groupSchemeName.groupName]"
-                                item-key="label" handle=".drag-item-card-scheme-handle" v-bind="dragOptions"
-                                @end="schemeListDragEndEvent" class="drag-item-card-scheme-container"
+                                item-key="schemeName" handle=".drag-item-card-scheme-handle" v-bind="dragOptions"
+                                @update="schemeListDragEndEvent" class="drag-item-card-scheme-container"
                                 :group="{ name: groupSchemeName.groupName }">
                                 <template #item="{ element: scheme, index }">
                                     <div class="drag-item-card-scheme">
-                                        <SchemeItemCard :scheme="scheme">
+                                        <SchemeItemCard :scheme="scheme" :group-name="groupSchemeName.groupName">
                                             <template #operation-left>
                                                 <el-text @click="starBtnEvent(scheme)" style="margin-right: 10px;">
                                                     <el-icon>
@@ -164,7 +172,7 @@ const schemeListDragEndEvent = async () => {
                                     <div style="display: flex; width: 50%;">
                                         <ItemCard>
                                             <div class="item-card-addscheme"
-                                                @click="addSchemeItemEvent(groupSchemeName.groupName)">
+                                                @click="addSchemeItemEvent(groupSchemeName.groupName )">
                                                 <el-text><el-icon>
                                                         <Plus />
                                                     </el-icon> 添加方案</el-text>

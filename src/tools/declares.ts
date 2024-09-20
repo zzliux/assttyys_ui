@@ -1,9 +1,28 @@
 import type { onConfirmOption as onSchemeSaveConfirmOption } from "@/components/SchemeEditDialog";
 
+export type FuncConfig = {
+    desc: string;
+    config: {
+        name: string,
+        desc: string,
+        type: 'switch' | 'integer' | 'text' | 'scheme' | 'list' | 'number',
+        data?: string[],
+        default: boolean | string | number,
+        value?: boolean | string | number,
+    }[]
+}
+
+export type Func = {
+    id: number,
+    name: string,
+    desc?: string,
+    config?: FuncConfig[],
+}
+
 export type Scheme = {
     id: number;
     schemeName: string;
-    groupNames: string[]; // 该属性方案本身不存，由GroupSchemeNames关联而来
+    groupNames?: string[]; // 该属性方案本身不存，由GroupSchemeNames关联而来读取方案时无该字段
     inner?: boolean;
     star?: boolean;
 
@@ -45,34 +64,26 @@ export type AutoWebTypes = {
         param: void,
         result: GroupSchemeName[]
     },
-    getDefaultScheme: {
-        param: string,
-        result: Scheme
-    },
     getSchemeList: {
         param: void,
         result: Scheme[]
+    },
+    getGroupNames: {
+        param: void,
+        result: string[]
     },
     saveScheme: {
         param: onSchemeSaveConfirmOption
         result: { error: number, message: string }
     },
-    saveSchemeList: {
-        param: Scheme[],
-        result: void
-    },
     saveGroupSchemeNames: {
         param: GroupSchemeName[],
-        result: void
+        result: { error: number, message: string }
     },
-    topScheme: {
-        param: Scheme,
-        result: void
-    }
     removeScheme: {
         param: Scheme,
-        result: string, // 'success'
-    }
+        result: { error: number, message: string }
+    },
     versionInfo: {
         param: void,
         result: {
@@ -86,5 +97,5 @@ export type AutoWebTypes = {
     setCurrentScheme: {
         param: string,
         result: void
-    }
+    },
 }

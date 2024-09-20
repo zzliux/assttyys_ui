@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Scheme } from '@/tools/declares';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import type { editType, onConfirmCallback } from '.';
 import { AutoWeb } from '@/tools/AutoWeb';
 import { deepClone } from '@/tools/tools';
@@ -11,13 +11,30 @@ const $props = defineProps<{
 }>();
 const dataScheme = ref<Scheme>();
 const groupNames = ref<string[]>([]);
+const selectedGroups = ref<string[]>([]);
+watch(dataScheme, async (newVal) => {
+    if (newVal) {
+        groupNames.value = await AutoWeb.autoPromise('getGroupNames');
+        const selectedSet = new Set<string>();
+        const groupSchemeNames = await AutoWeb.autoPromise('getGroupSchemeNames');
+        for (const groupSchemeName of groupSchemeNames) {
+            for (const schemeName of groupSchemeName.schemeNames) {
+                if (schemeName === newVal.schemeName) {
+                    selectedSet.add(groupSchemeName.groupName);
+                }
+            }
+        }
+        selectedGroups.value = Array.from(selectedSet);
+    }
+});
+
 onMounted(async () => {
     dataScheme.value = deepClone($props.scheme);
-    groupNames.value = await AutoWeb.autoPromise('getGroupNames');
 })
 const model = defineModel<boolean>(); // 是否显示
 const confirmBtnEvent = async () => {
     dataScheme.value.inner = false;
+    dataScheme.value.groupNames = selectedGroups.value;
     model.value = !await $props.onConfirm({
         oldScheme: $props.scheme,
         newScheme: dataScheme.value,
@@ -44,7 +61,8 @@ const editTypeToTitle = (type: editType) => {
                     <el-input v-model="dataScheme.schemeName" autocomplete="off" />
                 </el-form-item>
                 <el-form-item label="分组名" :label-width="80">
-                    <el-select v-model="dataScheme.groupNames" placeholder="输入或选择分组名" allow-create filterable clearable multiple>
+                    <el-select v-model="selectedGroups" placeholder="输入或选择分组名" allow-create filterable clearable
+                        multiple>
                         <el-option v-for="(item, _index) in groupNames" :label="item" :value="item" />
                     </el-select>
                 </el-form-item>

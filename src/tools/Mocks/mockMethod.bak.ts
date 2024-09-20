@@ -1,5 +1,5 @@
 import type { onConfirmOption as onSchemeSaveConfirmOption } from "@/components/SchemeEditDialog";
-import type { GroupSchemeName, Scheme } from "./declares";
+import type { GroupSchemeName, Scheme } from "../declares";
 
 const mockData: {
     [key: string]: any;
@@ -150,9 +150,6 @@ const mockData: {
         return {
             error: 0
         }
-    },
-    topScheme: function (_arg: any) {
-        return 'success';
     },
     saveSchemeList: function (_arg: any) {
         return 'success';
@@ -483,27 +480,8 @@ const mockData: {
     ],
     saveScheduleList: 'success',
     scheduleChange: null,
-    getGroupNames: function (_arg: any): string[] {
-        const savedSchemeList = this['getSchemeList'];
-        const groupNames = new Set<string>();
-        groupNames.add('未分组');
-        savedSchemeList.forEach((item: Scheme) => {
-            item.groupNames?.forEach((groupName: string) => {
-                groupNames.add(groupName);
-            });
-        });
-        return Array.from(groupNames);
-    },
+    getGroupNames: ['未分组', '切换方案样例', '个人突破卡级', '式神寄养', '定时任务', '活动'],
     getGroupSchemeNames: function (): GroupSchemeName[] {
-        // const groupNames = this.getGroupNames();
-        // return groupNames.map((groupName: string) => {
-        //     return {
-        //         groupName,
-        //         schemeNames: this['getSchemeList']
-        //             .filter((item: Scheme) => item.groupNames?.includes(groupName))
-        //             .map((item: Scheme) => item.schemeName)
-        //     };
-        // });
         return [
             {
                 "groupName": "未分组",

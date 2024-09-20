@@ -3,7 +3,7 @@ import SchemeEditDialog from "./SchemeEditDialog.vue";
 
 export default SchemeEditDialog;
 
-export type editType = 'copy' | 'modify' | 'add';
+export type editType = 'copy' | 'modify' | 'add' | 'remove';
 export type onConfirmOption = {
     oldScheme?: Scheme,
     newScheme: Scheme,
