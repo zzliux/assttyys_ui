@@ -48,9 +48,8 @@ const updateGroupSchemeNamesBySchemeUpdate = (option: onConfirmOption): void => 
         newScheme.groupNames = ['未分组'];
     }
 
-    const groupSchemeNames: GroupSchemeName[] = store.get('groupSchemeNames');
+    let groupSchemeNames: GroupSchemeName[] = store.get('groupSchemeNames');
     if ('modify' === type) {
-
         // 直接找到原来的分组，将原来的分组中的名字修改为新的名字
         const deletedGroupSchemeNames = oldScheme.groupNames.filter(groupName => !newScheme.groupNames.includes(groupName));
         const commonGroupNames = oldScheme.groupNames.filter(groupName => newScheme.groupNames.includes(groupName));
@@ -71,7 +70,7 @@ const updateGroupSchemeNamesBySchemeUpdate = (option: onConfirmOption): void => 
                 const index = groupSchemeName.schemeNames.findIndex(schemeName => schemeName === oldScheme.schemeName);
                 groupSchemeName.schemeNames.splice(index, 1, newScheme.schemeName);
             }
-        })
+        });
 
         // 3. 新增分组中新增方案名
         addedGroupSchemeNames.forEach(groupName => {
@@ -83,7 +82,10 @@ const updateGroupSchemeNamesBySchemeUpdate = (option: onConfirmOption): void => 
             } else {
                 groupSchemeName.schemeNames.push(newScheme.schemeName);
             }
-        })
+        });
+
+        // 4. 删除空分组
+        groupSchemeNames = groupSchemeNames.filter(groupSchemeName => groupSchemeName.schemeNames.length > 0);
     } else if ('copy' === type || 'add' === type) {
         const addedGroupSchemeNames = newScheme.groupNames;
         // 3. 新增分组中新增方案名
@@ -106,6 +108,9 @@ const updateGroupSchemeNamesBySchemeUpdate = (option: onConfirmOption): void => 
                 groupSchemeName.schemeNames.splice(index, 1);
             }
         });
+
+        // 4. 删除空分组
+        groupSchemeNames = groupSchemeNames.filter(groupSchemeName => groupSchemeName.schemeNames.length > 0);
     }
     store.put('groupSchemeNames', groupSchemeNames);
 }

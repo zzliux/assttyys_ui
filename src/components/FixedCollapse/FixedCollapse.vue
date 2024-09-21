@@ -1,6 +1,6 @@
 <!-- 父的高度固定时，整体高度超出父高度，未打开的折叠面板的item则会固定在父容器的上下两个位置 -->
 <script setup lang="ts">
-import { onMounted, onUnmounted, provide, ref, watch } from 'vue';
+import { nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue';
 import { uuid } from '@/tools/tools';
 import emitter from './EventBus';
 
@@ -26,10 +26,9 @@ onMounted(() => {
 		emitFlag = true;
 		model.value = name;
 	});
-    // 父比子先挂载，等子挂载完了再发送父的model更新事件
-    setTimeout(() => {
+    nextTick(() => {
         emitter.emit('Event.FixedCollapse.ModelUpdate', `${instanceNamespace}:${model.value}`);
-    }, 0)
+    });
 });
 
 onUnmounted(() => {

@@ -82,3 +82,26 @@ export const deepEqual = (a: any, b: any): boolean => {
         return a === b;
     }
 }
+
+
+export const debounce = <T extends (...args: any[]) => any>(fn: T, delay: number = 100): T => {
+    let timerId: ReturnType<typeof setTimeout>;
+    return ((...args: Parameters<T>) => {
+        clearTimeout(timerId);
+        timerId = setTimeout(() => {
+            fn(...args);
+        }, delay);
+    }) as T;
+}
+
+export const throttle = <T extends (...args: any[]) => any>(fn: T, delay: number = 100): T => {
+    let timerId: ReturnType<typeof setTimeout>;
+    return ((...args: Parameters<T>) => {
+        if (timerId) {
+            clearTimeout(timerId);
+        }
+        timerId = setTimeout(() => {
+            fn(...args);
+        }, delay);
+    }) as T;
+}

@@ -1,4 +1,4 @@
-import { ElLoading } from "element-plus";
+import FullLoading from "@/components/DebouncedFullLoading";
 import { type AutoWebTypes } from "./declares";
 import MockMethod from "./Mocks/MockMethod";
 import { uuid } from "./tools";
@@ -38,16 +38,16 @@ export const AutoWeb = {
     },
 
     autoPromise<Key extends keyof AutoWebTypes>(eventname: Key, params?: AutoWebTypes[Key]['param'], timeout = 30000): Promise<AutoWebTypes[Key]['result']> {
-        const loadingInstance = ElLoading.service({ fullscreen: true })
+        FullLoading.show();
         return new Promise((resolve, reject) => {
             const tmid = setTimeout(() => {
                 reject(new Error('timeout'));
-                loadingInstance.close();
+                FullLoading.close();
             }, timeout);
             this.auto(eventname, params, (result: AutoWebTypes[Key]['result']) => {
                 clearTimeout(tmid);
                 resolve(result);
-                loadingInstance.close();
+                FullLoading.close();
             });
         })
     }
@@ -55,6 +55,7 @@ export const AutoWeb = {
 
 
 // 调试模式
+localStorage.setItem('debug', '1');
 if (localStorage.getItem('debug')) {
     (window as any)['promptMock'] = function <Key extends keyof AutoWebTypes>(key: Key, paramStr?: string) {
         setTimeout(() => {

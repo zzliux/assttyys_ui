@@ -1,4 +1,4 @@
 import FixedCollapse from './FixedCollapse.vue';
-import FixedCollapaseItem from './FixedCollapseItem.vue';
+import FixedCollapseItem from './FixedCollapseItem.vue';
 
-export { FixedCollapse, FixedCollapaseItem };
+export { FixedCollapse, FixedCollapseItem };

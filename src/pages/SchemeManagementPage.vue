@@ -1,8 +1,8 @@
 <script setup lang='ts'>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { AutoWeb } from '@/tools/AutoWeb';
 import Nav from '@/components/Nav.vue';
-import { FixedCollapse, FixedCollapaseItem } from '@/components/FixedCollapse';
+import { FixedCollapse, FixedCollapseItem } from '@/components/FixedCollapse';
 import type { GroupSchemeName, Scheme } from '@/tools/declares';
 import SchemeItemCard from '@/components/SchemeItemCard.vue';
 import ItemCard from '@/components/ItemCard.vue';
@@ -14,29 +14,36 @@ import { ElMessage } from 'element-plus';
 import type { onConfirmOption } from '@/components/SchemeEditDialog';
 import draggable from '@marshallswain/vuedraggable';
 
-onMounted(async () => {
-    loadData();
-});
 
-const collapseVal = ref('未分组');
+const collapseVal = ref('');
 
 const schemeList = ref<Scheme[]>([]);
 const groupSchemeNames = ref<GroupSchemeName[]>([]);
 const groupedSchemeList = ref<Record<string, Scheme[]>>({});
-watch(groupSchemeNames, (newVal) => {
-    console.log('[groupSchemeNames] changed', newVal);
-    groupedSchemeList.value = groupSchemeList(newVal, schemeList.value);
-}, { deep: true });
+// watch(groupSchemeNames, (newVal) => {
+//     console.log('[groupSchemeNames] changed', newVal);
+//     groupedSchemeList.value = groupSchemeList(newVal, schemeList.value);
+// }, { deep: true });
 // watch(schemeList, (newVal) => {
 //     console.log('[schemeList] changed', newVal);
 //     groupedSchemeList.value = groupSchemeList(groupSchemeNames.value, newVal);
 // }, { deep: true });
 
+
+onMounted(async () => {
+    await loadData();
+    collapseVal.value = groupSchemeNames.value[0].groupName;
+});
 async function loadData() {
-    schemeList.value = await AutoWeb.autoPromise('getSchemeList');
-    groupSchemeNames.value = await AutoWeb.autoPromise('getGroupSchemeNames');
-    // groupedSchemeList.value = groupSchemeList(groupSchemeNames.value, schemeList.value);
-    console.log(groupedSchemeList.value);
+    // schemeList.value = await AutoWeb.autoPromise('getSchemeList');
+    // groupSchemeNames.value = await AutoWeb.autoPromise('getGroupSchemeNames');
+    const result = await Promise.all([
+        AutoWeb.autoPromise('getSchemeList'),
+        AutoWeb.autoPromise('getGroupSchemeNames')
+    ])
+    schemeList.value = result[0];
+    groupSchemeNames.value = result[1];
+    groupedSchemeList.value = groupSchemeList(groupSchemeNames.value, schemeList.value);
 }
 
 function schemeItemClick() {
@@ -95,7 +102,7 @@ const addSchemeConfirmEvent = async (option: onConfirmOption) => {
         })
         return false;
     }
-    schemeList.value.push(newScheme);
+    loadData();
     return true;
 }
 
@@ -137,11 +144,16 @@ const schemeListDragEndEvent = async () => {
     <div class="container">
         <FixedCollapse v-model="collapseVal">
             <draggable :force-fallback="true" v-model="groupSchemeNames" item-key="groupName"
-                handle=".fixedCollapseItem-header" v-bind="dragOptions" @update="groupNamesDragEndEvent"
+                handle=".drag-group-handle" v-bind="dragOptions" @update="groupNamesDragEndEvent"
                 :group="{ name: 'groupNames' }">
                 <template #item="{ element: groupSchemeName, index }">
-                    <FixedCollapaseItem :name="groupSchemeName.groupName">
+                    <FixedCollapseItem :name="groupSchemeName.groupName">
                         <template #header>{{ groupSchemeName.groupName }}</template>
+                        <template #header-icon-left>
+                            <span class="drag-group-handle"><el-icon>
+                                    <Sort />
+                                </el-icon></span>
+                        </template>
                         <template #content>
                             <draggable :force-fallback="true" v-model="groupedSchemeList[groupSchemeName.groupName]"
                                 item-key="schemeName" handle=".drag-item-card-scheme-handle" v-bind="dragOptions"
@@ -169,10 +181,10 @@ const schemeListDragEndEvent = async () => {
                                     </div>
                                 </template>
                                 <template #footer>
-                                    <div style="display: flex; width: 50%;">
+                                    <div class="item-card-addscheme-container">
                                         <ItemCard>
                                             <div class="item-card-addscheme"
-                                                @click="addSchemeItemEvent(groupSchemeName.groupName )">
+                                                @click="addSchemeItemEvent(groupSchemeName.groupName)">
                                                 <el-text><el-icon>
                                                         <Plus />
                                                     </el-icon> 添加方案</el-text>
@@ -182,7 +194,7 @@ const schemeListDragEndEvent = async () => {
                                 </template>
                             </draggable>
                         </template>
-                    </FixedCollapaseItem>
+                    </FixedCollapseItem>
                 </template>
             </draggable>
         </FixedCollapse>
@@ -192,20 +204,26 @@ const schemeListDragEndEvent = async () => {
 </template>
 
 <style scoped>
+@media screen and (max-width: 640px) {
+    .drag-item-card-scheme,
+    .item-card-addscheme-container {
+        width: 50%;
+    }
+}
+@media screen and (min-width: 640px) {
+    .drag-item-card-scheme,
+    .item-card-addscheme-container {
+        width: 33%;
+    }
+}
 .container {
     width: 100%;
     height: calc(100% - 46px);
     display: flex;
 }
-
-.container-left,
-.container-right {
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    box-shadow: 0px 0px 1px 0px rgba(0, 0, 0, 0.1);
+.item-card-addscheme-container {
+    display: flex;
 }
-
 .item-card-addscheme {
     width: 100%;
     text-align: center;
@@ -221,6 +239,9 @@ const schemeListDragEndEvent = async () => {
 
 .drag-item-card-scheme {
     display: flex;
-    width: 50%;
+}
+
+.drag-group-handle {
+    margin-right: 10px;
 }
 </style>
