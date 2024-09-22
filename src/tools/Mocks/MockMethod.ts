@@ -133,6 +133,9 @@ export const MockMethod: {
     getSchemeList: () => {
         return store.get('schemeList');
     },
+    getDefaultSchemeList: () => {
+        return SchemeList;
+    },
     getGroupNames: () => {
         return store.get('groupSchemeNames').map((groupSchemeName: GroupSchemeName) => groupSchemeName.groupName);
     },

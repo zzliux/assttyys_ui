@@ -69,6 +69,10 @@ export type AutoWebTypes = {
         param: void,
         result: Scheme[]
     },
+    getDefaultSchemeList: {
+        param: void,
+        result: Scheme[]
+    },
     getGroupNames: {
         param: void,
         result: string[]
