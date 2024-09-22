@@ -2,7 +2,6 @@ import { type AutoWebTypes, type GroupSchemeName, type Scheme } from '../declare
 import store from './store';
 import SchemeList from './initDatas/SchemeList';
 import type { onConfirmOption } from '@/components/SchemeEditDialog';
-import { deepEqual } from '../tools';
 
 if (localStorage.getItem('debug')) {
     // 1. 初始化schemeList
@@ -24,8 +23,7 @@ if (localStorage.getItem('debug')) {
             scheme.groupNames.forEach(groupName => {
                 if (!toSaveMap[groupName]) {
                     toSaveMap[groupName] = {
-                        groupName, schemeNames: []
-
+                        groupName, hidden: false, schemeNames: []
                     };
                 }
                 if (!toSaveMap[groupName].schemeNames.includes(scheme.schemeName)) {
@@ -77,7 +75,7 @@ const updateGroupSchemeNamesBySchemeUpdate = (option: onConfirmOption): void => 
             const groupSchemeName = groupSchemeNames.find(groupSchemeName => groupSchemeName.groupName === groupName);
             if (!groupSchemeName) {
                 groupSchemeNames.push({
-                    groupName, schemeNames: [newScheme.schemeName]
+                    groupName, hidden: false, schemeNames: [newScheme.schemeName]
                 });
             } else {
                 groupSchemeName.schemeNames.push(newScheme.schemeName);
@@ -93,7 +91,7 @@ const updateGroupSchemeNamesBySchemeUpdate = (option: onConfirmOption): void => 
             const groupSchemeName = groupSchemeNames.find(groupSchemeName => groupSchemeName.groupName === groupName);
             if (!groupSchemeName) {
                 groupSchemeNames.push({
-                    groupName, schemeNames: [newScheme.schemeName]
+                    groupName, hidden: false, schemeNames: [newScheme.schemeName]
                 });
             } else {
                 groupSchemeName.schemeNames.push(newScheme.schemeName);

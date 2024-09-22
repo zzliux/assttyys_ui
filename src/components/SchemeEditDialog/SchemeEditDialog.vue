@@ -39,7 +39,8 @@ const editTypeToTitle = (type: editType) => {
 }
 </script>
 <template>
-    <el-dialog v-model="model" :title="`${editTypeToTitle($props.type)}${$props.scheme.schemeName}`" :width="480">
+    <el-dialog v-model="model" :title="`${editTypeToTitle($props.type)}${$props.scheme.schemeName}`" :width="480"
+        :close-on-click-modal="false">
         <template #default>
             <el-form :model="dataScheme">
                 <el-form-item label="方案名" :label-width="80">

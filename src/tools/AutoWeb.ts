@@ -65,7 +65,7 @@ if (localStorage.getItem('debug')) {
             console.log(`[autoweb::request:${key}]`, param.params);
             console.log(`[autoweb::request:${key}]`, result);
             (window as any)[param.PROMPT_CALLBACK](result);
-        }, Math.floor(Math.random() * 9999999) % 490 + 10); // 模拟异步延时
+        }, Math.floor(Math.random() * 9999999) % 190 + 10); // 模拟异步延时
     };
     AutoWeb.setMode('promptMock')
 }

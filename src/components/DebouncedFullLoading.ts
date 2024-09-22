@@ -7,7 +7,7 @@ let instance: { close: any; setText?: (text: string) => void; removeElLoadingChi
 const debounceClose = debounce(() => {
     instance?.close();
     instance = null;
-}, 200);
+}, 0);
 export const DebouncedFullLoading = {
     show() {
         if (instance) return;

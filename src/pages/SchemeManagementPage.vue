@@ -8,14 +8,25 @@ import SchemeItemCard from '@/components/SchemeItemCard.vue';
 import ItemCard from '@/components/ItemCard.vue';
 import globalEmmiter from '@/tools/GlobalEventBus';
 import { groupedSchemeListToGroupSchemeNames, groupSchemeList } from '@/tools/tools';
-import { Plus, Sort, Star, StarFilled } from '@element-plus/icons-vue'
+import { Plus, Sort, Star, StarFilled, More, View, Hide } from '@element-plus/icons-vue'
 import SchemeEditDialog from '@/components/SchemeEditDialog/SchemeEditDialog.vue';
 import { ElMessage } from 'element-plus';
 import type { onConfirmOption } from '@/components/SchemeEditDialog';
 import draggable from '@marshallswain/vuedraggable';
 
 
+const config = ref<{
+    showHiddenGroup: boolean,
+    currentCollapseVal: string,
+    collapseAccordion: true,
+}>(JSON.parse(localStorage.getItem('store.schemeManagement') || '{}'));
+watch(config, (newVal) => {
+    localStorage.setItem('store.schemeManagement', JSON.stringify(newVal));
+}, { deep: true });
 const collapseVal = ref('');
+watch(collapseVal, (newVal) => {
+    config.value.currentCollapseVal = newVal;
+});
 
 const schemeList = ref<Scheme[]>([]);
 const groupSchemeNames = ref<GroupSchemeName[]>([]);
@@ -29,11 +40,6 @@ const groupedSchemeList = ref<Record<string, Scheme[]>>({});
 //     groupedSchemeList.value = groupSchemeList(groupSchemeNames.value, newVal);
 // }, { deep: true });
 
-
-onMounted(async () => {
-    await loadData();
-    collapseVal.value = groupSchemeNames.value[0].groupName;
-});
 async function loadData() {
     // schemeList.value = await AutoWeb.autoPromise('getSchemeList');
     // groupSchemeNames.value = await AutoWeb.autoPromise('getGroupSchemeNames');
@@ -50,30 +56,6 @@ function schemeItemClick() {
     // TODO 跳转进入该方案的功能配置页
     console.log('schemeItemClick');
 }
-
-
-onMounted(() => {
-    globalEmmiter.on('Event.SchemeItemCard.Operation', (option) => {
-        loadData();
-        // if (option.type === 'copy') {
-        //     const copyIndex = schemeList.value.findIndex(item => item.schemeName === option.targetScheme.schemeName);
-        //     schemeList.value.splice(copyIndex + 1, 0, option.newScheme);
-        // } else if (option.type === 'modify') {
-        //     const modifyIndex = schemeList.value.findIndex(item => item.schemeName === option.targetScheme.schemeName);
-        //     schemeList.value[modifyIndex] = option.newScheme;
-        // } else if (option.type === 'remove') {
-        //     const toRemoveIndex = schemeList.value.findIndex(item => item.schemeName === option.targetScheme.schemeName);
-        //     schemeList.value.splice(toRemoveIndex, 1);
-        // } else if (option.type === 'reSort') {
-        //     groupSchemeNames.value = option.groupSchemeNames;
-        // }
-    });
-});
-
-
-onUnmounted(() => {
-    globalEmmiter.off('Event.SchemeItemCard.Operation')
-});
 
 const newScheme = ref<Scheme>();
 const newSchemeEditDialogShown = ref(false);
@@ -135,21 +117,76 @@ const schemeListDragEndEvent = async () => {
     const toSave = groupedSchemeListToGroupSchemeNames(groupedSchemeList.value);
     await AutoWeb.autoPromise('saveGroupSchemeNames', toSave);
 }
+const showHideGroup = async (e: MouseEvent, groupNameStr: string, hidden: boolean) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const groupName = groupSchemeNames.value.find(item => item.groupName === groupNameStr);
+    groupName.hidden = hidden;
+    await AutoWeb.autoPromise('saveGroupSchemeNames', groupSchemeNames.value);
+    // loadData();
+}
+
+
+onMounted(async () => {
+    await loadData();
+    collapseVal.value = config.value.currentCollapseVal;
+    globalEmmiter.on('Event.SchemeItemCard.Operation', (option) => {
+        loadData();
+    });
+});
+
+
+onUnmounted(() => {
+    globalEmmiter.off('Event.SchemeItemCard.Operation')
+});
 
 
 </script>
 
 <template>
-    <Nav name="方案管理" />
+    <Nav name="方案管理">
+        <template #extra>
+            <span style="margin-right: 10px">
+                <el-popover placement="bottom" trigger="click">
+                    <template #reference>
+                        <el-button link><el-icon>
+                                <More />
+                            </el-icon></el-button>
+                    </template>
+                    <template #default>
+                        <el-checkbox v-model="config.showHiddenGroup" label="显示隐藏的分组" size="small" />
+                        <el-checkbox v-model="config.collapseAccordion" label="手风琴模式" size="small" />
+                    </template>
+                </el-popover>
+            </span>
+        </template>
+    </Nav>
     <div class="container">
-        <FixedCollapse v-model="collapseVal">
+        <FixedCollapse v-model="collapseVal" :multipart="!config.collapseAccordion">
             <draggable :force-fallback="true" v-model="groupSchemeNames" item-key="groupName"
                 handle=".drag-group-handle" v-bind="dragOptions" @update="groupNamesDragEndEvent"
                 :group="{ name: 'groupNames' }">
                 <template #item="{ element: groupSchemeName, index }">
-                    <FixedCollapseItem :name="groupSchemeName.groupName">
+                    <FixedCollapseItem
+                        v-if="(!config.showHiddenGroup && !groupSchemeName.hidden) || config.showHiddenGroup"
+                        :name="groupSchemeName.groupName">
                         <template #header>{{ groupSchemeName.groupName }}</template>
                         <template #header-icon-left>
+                            <!-- 好像没有阻止#reference点击事件冒泡的手段，需要手动控制显示与关闭，有点麻烦，暂时不做二次确认 -->
+                            <!-- <el-popconfirm title="确认是否隐藏" confirm-button-text="确认" cancel-button-text="取消"
+                                @confirm="showHideGroup($event, groupSchemeName.groupName, !groupSchemeName.hidden)">
+                                <template #reference> -->
+                            <span class="group-show-hide-btn"
+                                @click.stop="showHideGroup($event, groupSchemeName.groupName, !groupSchemeName.hidden)"><el-icon>
+                                    <View v-if="!groupSchemeName.hidden" />
+                                    <Hide v-else />
+                                </el-icon></span>
+                            <!-- </template>
+            </el-popconfirm> -->
+                            <span class="add-scheme-btn"
+                                @click.stop="addSchemeItemEvent(groupSchemeName.groupName)"><el-icon>
+                                    <Plus />
+                                </el-icon></span>
                             <span class="drag-group-handle"><el-icon>
                                     <Sort />
                                 </el-icon></span>
@@ -180,7 +217,7 @@ const schemeListDragEndEvent = async () => {
                                         </SchemeItemCard>
                                     </div>
                                 </template>
-                                <template #footer>
+                                <!-- <template #footer>
                                     <div class="item-card-addscheme-container">
                                         <ItemCard>
                                             <div class="item-card-addscheme"
@@ -191,7 +228,7 @@ const schemeListDragEndEvent = async () => {
                                             </div>
                                         </ItemCard>
                                     </div>
-                                </template>
+                                </template> -->
                             </draggable>
                         </template>
                     </FixedCollapseItem>
@@ -205,25 +242,31 @@ const schemeListDragEndEvent = async () => {
 
 <style scoped>
 @media screen and (max-width: 640px) {
+
     .drag-item-card-scheme,
     .item-card-addscheme-container {
         width: 50%;
     }
 }
+
 @media screen and (min-width: 640px) {
+
     .drag-item-card-scheme,
     .item-card-addscheme-container {
-        width: 33%;
+        width: 33.33%;
     }
 }
+
 .container {
     width: 100%;
     height: calc(100% - 46px);
     display: flex;
 }
+
 .item-card-addscheme-container {
     display: flex;
 }
+
 .item-card-addscheme {
     width: 100%;
     text-align: center;
@@ -239,6 +282,11 @@ const schemeListDragEndEvent = async () => {
 
 .drag-item-card-scheme {
     display: flex;
+}
+
+.group-show-hide-btn,
+.add-scheme-btn {
+    margin-right: 10px;
 }
 
 .drag-group-handle {

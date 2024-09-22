@@ -5,16 +5,29 @@ import emitter from './EventBus';
 
 
 const contentDomRef = ref<HTMLDivElement>();
+const contentInnerDomRef = ref<HTMLDivElement>();
 const $props = defineProps({
     name: String,
 });
 
 const namespace = inject('fixedCollapse.instanceNameSpace');
+const $parentProps = inject<any>('fixedCollapse.instanceProps');
 const isOpen = ref(false);
+
+let allNames: string[] = [];
 
 function toggleItem() {
     isOpen.value = !isOpen.value;
-    emitter.emit('Event.FixedCollapseItem.ModelUpdate', `${namespace}:${isOpen.value ? $props.name : ''}`);
+    if (isOpen.value) {
+        if (!$parentProps.multipart) {
+            allNames = [$props.name]
+        } else if ($parentProps.multipart) {
+            allNames.push($props.name);
+        }
+    } else {
+        allNames = allNames.filter(name => name !== $props.name);
+    }
+    emitter.emit('Event.FixedCollapseItem.ModelUpdate', `${namespace}:${allNames.join(',')}`);
 }
 const parentContainerDom = ref<HTMLElement>();
 const singleDoms = ref<HTMLCollectionOf<Element>>();
@@ -22,20 +35,26 @@ const modelChangeEvent = (val: string) => {
     parentContainerDom.value = document.getElementById(`fixedCollapse-${namespace}`);
     singleDoms.value = parentContainerDom.value.getElementsByClassName('fixedCollapseItem-header');
 
-    const [instanceNamespace, name] = val.split(':');
+    const [instanceNamespace, instanceName] = val.split(':');
     if (instanceNamespace !== namespace) return;
-    if (val === `${namespace}:${$props.name}`) {
-        const parentHeight = parentContainerDom.value.getBoundingClientRect().height;
-        const singleHeight = singleDoms.value[0].getBoundingClientRect().height;
-        const singleCounts = singleDoms.value.length;
-        const height = parentHeight - singleHeight * singleCounts;
+    allNames = instanceName ? instanceName.split(',') : [];
+    if (!$parentProps.multipart) {
+        isOpen.value = (instanceName === $props.name);
+    } else if ($parentProps.multipart) {
+        isOpen.value = (allNames.includes($props.name));
+    }
+    if (isOpen.value) {
+        // const parentHeight = parentContainerDom.value.getBoundingClientRect().height;
+        // const singleHeight = singleDoms.value[0].getBoundingClientRect().height;
+        // const singleCounts = singleDoms.value.length;
+        // const height1 = parentHeight - singleHeight * Math.min(singleCounts, 2);
+        const height2 = contentInnerDomRef.value.getBoundingClientRect().height;
+        // const height = Math.min(height1, height2);
 
-        contentDomRef.value.style.height = `${height}px`;
-        contentDomRef.value.style.padding = '2px';
+        contentDomRef.value.style.height = `${height2}px`;
         isOpen.value = true;
     } else {
         contentDomRef.value.style.height = `0px`;
-        contentDomRef.value.style.padding = '0px';
         isOpen.value = false;
     }
 }
@@ -65,7 +84,9 @@ onUnmounted(() => {
             </div>
         </div>
         <div class="fixedCollapseItem-content" ref="contentDomRef">
-            <slot name="content"></slot>
+            <div class="fixedCollapseItem-contentInner" ref="contentInnerDomRef">
+                <slot name="content"></slot>
+            </div>
         </div>
     </div>
 </template>
@@ -86,18 +107,28 @@ onUnmounted(() => {
     transition: all .2s ease-in-out;
 }
 
+.fixedCollapseItem-header-icon-arrow {
+    transition: all .2s ease-in-out;
+}
+
 .fixedCollapseItem-header.open .fixedCollapseItem-header-icon-arrow {
     transform: rotate(90deg);
 }
 
 .fixedCollapseItem-content {
     transition: all .2s ease-in-out;
-    overflow: auto;
+    overflow: hidden;
+    /* 动画的时候不显示滚动条 */
     height: 0px;
+    width: 100%;
+}
+
+.fixedCollapseItem-contentInner {
     display: flex;
     flex-wrap: wrap;
     width: 100%;
     align-content: flex-start;
+    padding: 2px;
 }
 
 .fixedCollapseItem-content.open {

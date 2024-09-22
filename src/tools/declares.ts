@@ -42,6 +42,7 @@ export type Scheme = {
 
 export type GroupSchemeName = {
     groupName: string,
+    hidden: boolean,
     schemeNames: string[]
 }
 

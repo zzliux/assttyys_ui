@@ -7,7 +7,15 @@ import emitter from './EventBus';
 const instanceNamespace = uuid();
 const containerDomId = ref<string>(`fixedCollapse-${instanceNamespace}`);
 
+const $props = defineProps({
+    multipart: {
+        default: false,
+        type: Boolean,
+    }
+});
+
 provide('fixedCollapse.instanceNameSpace', instanceNamespace);
+provide('fixedCollapse.instanceProps', $props)
 
 const model = defineModel<string>();
 let emitFlag = false;
@@ -21,7 +29,7 @@ watch(model, (newVal) => {
 
 onMounted(() => {
 	emitter.on('Event.FixedCollapseItem.ModelUpdate', val => {
-		const [namespace, name] = val.split(':');
+		const [namespace, multipart, name] = val.split(':');
 		if (namespace !== instanceNamespace) return;
 		emitFlag = true;
 		model.value = name;
@@ -48,6 +56,6 @@ onUnmounted(() => {
 	position: relative;
     width: 100%;
 	height: 100%;
-	overflow: hidden;
+	overflow: auto;
 }
 </style>

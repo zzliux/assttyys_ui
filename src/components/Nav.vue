@@ -49,6 +49,9 @@ onMounted(() => {
             <template #content>
                 <el-text>{{ $props.name }}</el-text>
             </template>
+            <template #extra>
+                <slot name="extra"></slot>
+            </template>
         </el-page-header>
     </div>
 </template>
