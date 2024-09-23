@@ -29,7 +29,7 @@ watch(model, (newVal) => {
 
 onMounted(() => {
 	emitter.on('Event.FixedCollapseItem.ModelUpdate', val => {
-		const [namespace, multipart, name] = val.split(':');
+		const [namespace, name] = val.split(':');
 		if (namespace !== instanceNamespace) return;
 		emitFlag = true;
 		model.value = name;

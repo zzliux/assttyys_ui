@@ -99,7 +99,7 @@ const deleteConfirmBtnEvent = async () => {
         </div>
         <div class="item-operation">
             <slot name="operation-left"></slot>
-            <el-popover placement="left" :width="55" trigger="click" popper-class="scheme-item-operation">
+            <el-popover placement="left" :width="55" :hide-after="0" :auto-close="1000" trigger="click" popper-class="scheme-item-operation">
                 <template #reference>
                     <el-button size="small" link>
                         <el-icon>

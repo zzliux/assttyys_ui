@@ -7,7 +7,7 @@ import type { GroupSchemeName, Scheme } from '@/tools/declares';
 import SchemeItemCard from '@/components/SchemeItemCard.vue';
 import ItemCard from '@/components/ItemCard.vue';
 import globalEmmiter from '@/tools/GlobalEventBus';
-import { groupedSchemeListToGroupSchemeNames, groupSchemeList } from '@/tools/tools';
+import { getGroupColor, groupedSchemeListToGroupSchemeNames, groupSchemeList } from '@/tools/tools';
 import { Plus, Sort, Star, StarFilled, More, View, Hide } from '@element-plus/icons-vue'
 import SchemeEditDialog from '@/components/SchemeEditDialog/SchemeEditDialog.vue';
 import { ElMessage } from 'element-plus';
@@ -21,9 +21,15 @@ const config = ref<{
     collapseAccordion: boolean,
     hiddenUnStar: boolean,
 }>(JSON.parse(localStorage.getItem('store.schemeManagement') || '{}'));
-watch(config, (newVal) => {
+watch(config, (newVal, oldVal) => {
     localStorage.setItem('store.schemeManagement', JSON.stringify(newVal));
 }, { deep: true });
+watch(() => config.value.collapseAccordion, (newVal) => {
+    nextTick(() => {
+        const vals = collapseVal.value.split(',');
+        collapseVal.value = vals[vals.length - 1];
+    });
+});
 const collapseVal = ref('');
 watch(collapseVal, (newVal) => {
     config.value.currentCollapseVal = newVal;
@@ -130,7 +136,11 @@ const showHideGroup = async (e: MouseEvent, groupNameStr: string, hidden: boolea
 
 onMounted(async () => {
     await loadData();
-    collapseVal.value = config.value.currentCollapseVal;
+    if (typeof config.value.currentCollapseVal === undefined) {
+        collapseVal.value = groupSchemeNames.value[0].groupName;
+    } else {
+        collapseVal.value = config.value.currentCollapseVal;
+    }
     globalEmmiter.on('Event.SchemeItemCard.Operation', (option) => {
         loadData();
     });
@@ -170,6 +180,7 @@ onUnmounted(() => {
                 :group="{ name: 'groupNames' }">
                 <template #item="{ element: groupSchemeName, index }">
                     <FixedCollapseItem
+                        :prevColor="getGroupColor(groupSchemeName.groupName)"
                         v-if="(!config.showHiddenGroup && !groupSchemeName.hidden) || config.showHiddenGroup"
                         :name="groupSchemeName.groupName">
                         <template #header><el-text size="small">{{ groupSchemeName.groupName }}</el-text></template>

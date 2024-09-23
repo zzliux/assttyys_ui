@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, onMounted, onUnmounted, ref } from 'vue';
+import { inject, onMounted, onUnmounted, ref, watch } from 'vue';
 import { ArrowRight, Folder, FolderOpened } from '@element-plus/icons-vue';
 import emitter from './EventBus';
 
@@ -8,10 +8,14 @@ const contentDomRef = ref<HTMLDivElement>();
 const contentInnerDomRef = ref<HTMLDivElement>();
 const $props = defineProps({
     name: String,
+    prevColor: {
+        type: String,
+        default: '#fff'
+    },
 });
 
 const namespace = inject('fixedCollapse.instanceNameSpace');
-const $parentProps = inject<any>('fixedCollapse.instanceProps');
+const $parentProps = inject<{ multipart: boolean, modelValue: string }>('fixedCollapse.instanceProps');
 const isOpen = ref(false);
 
 let allNames: string[] = [];
@@ -74,6 +78,7 @@ onUnmounted(() => {
     <div>
         <div :class="`fixedCollapseItem-header ${isOpen ? 'open' : ''}`" @click="toggleItem">
             <div class="fixedCollapseItem-header-text">
+                <div class="fixedCollapseItem-header-prevColorBox" :style="{ backgroundColor: $props.prevColor }"></div>
                 <el-text size="small" style="margin-right: 5px"><el-icon>
                         <FolderOpened v-if="isOpen" />
                         <Folder v-else />
@@ -99,11 +104,17 @@ onUnmounted(() => {
 .fixedCollapseItem-header {
     border-top: 1px solid #ebeef5;
     /* border-bottom: 1px solid #ebeef5; */
-    padding: 5px 10px;
+    padding: 5px 10px 5px 0px;
     font-size: 14px;
     display: flex;
     justify-content: space-between;
     background-color: #fff;
+}
+
+.fixedCollapseItem-header-prevColorBox {
+    width: 4px;
+    margin-right: 4px;
+    margin-left: 2px;
 }
 
 .fixedCollapseItem-header-text,

@@ -1,4 +1,6 @@
 import type { GroupSchemeName, Scheme } from "./declares";
+import groupColors from "./Mocks/groupColors";
+
 
 // 非时间种子的随机数
 export const uuid = () => {
@@ -29,6 +31,7 @@ export const groupedSchemeListToGroupSchemeNames = (groupedSchemeList: Record<st
     return Object.keys(groupedSchemeList).map(key => {
         return {
             groupName: key,
+            hidden: false,
             schemeNames: groupedSchemeList[key].map(scheme => scheme.schemeName)
         }
     });
@@ -104,4 +107,13 @@ export const throttle = <T extends (...args: any[]) => any>(fn: T, delay: number
             fn(...args);
         }, delay);
     }) as T;
+}
+
+export const getGroupColor = (groupName: string): string => {
+    // 计算hash值
+    let sum = 0;
+    for (let i = 0; i < groupName.length; i++) {
+        sum += groupName.charCodeAt(i);
+    }
+    return groupColors[sum % groupColors.length];
 }
