@@ -61,24 +61,26 @@ const editTypeToTitle = (type: editType) => {
 }
 </script>
 <template>
-    <el-dialog v-model="model" :title="`${editTypeToTitle($props.type)}${$props.scheme.schemeName}`" :width="480"
-        :close-on-click-modal="false">
+    <el-dialog v-model="model" :width="480" :close-on-click-modal="false">
+        <template #header>
+            <el-text>{{ editTypeToTitle($props.type) }}{{ $props.scheme.schemeName }}</el-text>
+        </template>
         <template #default>
-            <el-form :model="dataScheme">
-                <el-form-item label="方案名" :label-width="80">
+            <el-form class="scheme-edit-dialog-form" size="small" :model="dataScheme">
+                <el-form-item label="方案名" :label-width="60">
                     <el-input v-model="dataScheme.schemeName" autocomplete="off" />
                 </el-form-item>
-                <el-form-item label="分组名" :label-width="80">
+                <el-form-item label="分组名" :label-width="60">
                     <el-select v-model="dataScheme.groupNames" @visible-change="groupSelectPanelVisibleChange"
                         placeholder="输入或选择分组名" allow-create filterable clearable multiple
                         popper-class="scheme-edit-select-panel">
-                        <el-option v-for="(item, _index) in groupNames" :label="item" :value="item" />
+                        <el-option class="el-option-item" v-for="(item, _index) in groupNames" :label="item" :value="item" />
                     </el-select>
                 </el-form-item>
-                <el-form-item v-if="$props.type === 'add'" label="内置方案" :label-width="80">
+                <el-form-item v-if="$props.type === 'add'" label="内置方案" :label-width="60">
                     <el-select v-model="innerSchemeName" @visible-change="innerSchemeSelectPanelVisibleChange"
                         placeholder="请选择需要复制的内置方案（可选）" filterable popper-class="scheme-edit-select-panel">
-                        <el-option v-for="(item, _index) in innerSchemeList" :label="item.schemeName"
+                        <el-option class="el-option-item" v-for="(item, _index) in innerSchemeList" :label="item.schemeName"
                             :value="item.schemeName" />
                     </el-select>
                 </el-form-item>
@@ -86,8 +88,8 @@ const editTypeToTitle = (type: editType) => {
         </template>
         <template #footer>
             <div class="dialog-footer">
-                <el-button @click="model = false">取消</el-button>
-                <el-button type="primary" @click="confirmBtnEvent">确认</el-button>
+                <el-button size="small" @click="model = false">取消</el-button>
+                <el-button size="small" type="primary" @click="confirmBtnEvent">确认</el-button>
             </div>
         </template>
     </el-dialog>
@@ -106,5 +108,29 @@ const editTypeToTitle = (type: editType) => {
 .el-select-dropdown.scheme-edit-select-panel {
     max-height: 150px;
     overflow: auto;
+}
+.el-dialog__header {
+    padding-bottom: 10px;
+}
+.scheme-edit-dialog-form .el-form-item--small {
+    margin-bottom: 10px;
+}
+.el-dialog__footer {
+    padding-top: 0px;
+}
+/* .el-select-dropdown__list {
+    padding: 0;
+} */
+.el-option-item {
+    color: #606266;
+    font-size: 12px;
+    height: 26px;
+    line-height: 26px;
+    padding-left: 15px;
+}
+@media screen and (max-width: 480px) {
+    .el-dialog {
+        width: calc(100% - 2px) !important;
+    }
 }
 </style>

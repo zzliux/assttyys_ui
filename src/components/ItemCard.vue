@@ -15,7 +15,6 @@
     display: flex;
     justify-content: space-between;
     width: 100%;
-    height: fit-content;
     background-color: #fff;
 }
 .item-card-item:active {

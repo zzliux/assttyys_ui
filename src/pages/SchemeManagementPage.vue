@@ -203,7 +203,8 @@ onUnmounted(() => {
                                         v-if="!config.hiddenUnStar || (config.hiddenUnStar && scheme.star)">
                                         <SchemeItemCard :scheme="scheme" :group-name="groupSchemeName.groupName">
                                             <template #operation-left>
-                                                <el-text size="small" @click="starBtnEvent(scheme)" style="margin-right: 10px;">
+                                                <el-text size="small" @click="starBtnEvent(scheme)"
+                                                    style="margin-right: 10px;">
                                                     <el-icon>
                                                         <!-- 默认的实心五星图标比空心小一圈，让它俩叠加以达到视觉大小一致 -->
                                                         <Star style="position: absolute; top: 0; left: 0" />
@@ -244,7 +245,15 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@media screen and (max-width: 640px) {
+@media screen and (max-width: 360px) {
+
+    .drag-item-card-scheme,
+    .item-card-addscheme-container {
+        width: 100%;
+    }
+}
+
+@media screen and (min-width: 360px) and (max-width: 640px) {
 
     .drag-item-card-scheme,
     .item-card-addscheme-container {
