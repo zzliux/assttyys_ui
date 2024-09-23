@@ -95,26 +95,26 @@ const deleteConfirmBtnEvent = async () => {
 <template>
     <ItemCard>
         <div class="item-title">
-            <el-text>{{ $props.scheme.schemeName }}</el-text>
+            <el-text size="small">{{ $props.scheme.schemeName }}</el-text>
         </div>
         <div class="item-operation">
             <slot name="operation-left"></slot>
             <el-popover placement="left" :width="55" trigger="click" popper-class="scheme-item-operation">
                 <template #reference>
-                    <el-button link>
+                    <el-button size="small" link>
                         <el-icon>
                             <Operation />
                         </el-icon>
                     </el-button>
                 </template>
                 <template #default>
-                    <el-link type="primary" @click="toTop">置顶</el-link><br />
-                    <el-link type="success" @click="copyBtnEvent">复制</el-link><br />
-                    <el-link type="warning" @click="modifyBtnEvent">修改</el-link><br />
+                    <el-button link size="small" type="primary" @click="toTop">置顶</el-button><br />
+                    <el-button link size="small" type="success" @click="copyBtnEvent">复制</el-button><br />
+                    <el-button link size="small" type="warning" @click="modifyBtnEvent">修改</el-button><br />
                     <el-popconfirm title="确认是否删除" @confirm="deleteConfirmBtnEvent" confirm-button-text="确认"
                         cancel-button-text="取消">
                         <template #reference>
-                            <el-link type="danger">删除</el-link>
+                            <el-button link size="small" type="danger">删除</el-button>
                         </template>
                     </el-popconfirm>
                 </template>

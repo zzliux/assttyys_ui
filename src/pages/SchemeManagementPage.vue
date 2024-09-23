@@ -172,26 +172,26 @@ onUnmounted(() => {
                     <FixedCollapseItem
                         v-if="(!config.showHiddenGroup && !groupSchemeName.hidden) || config.showHiddenGroup"
                         :name="groupSchemeName.groupName">
-                        <template #header>{{ groupSchemeName.groupName }}</template>
+                        <template #header><el-text size="small">{{ groupSchemeName.groupName }}</el-text></template>
                         <template #header-icon-left>
                             <!-- 好像没有阻止#reference点击事件冒泡的手段，需要手动控制显示与关闭，有点麻烦，暂时不做二次确认 -->
                             <!-- <el-popconfirm title="确认是否隐藏" confirm-button-text="确认" cancel-button-text="取消"
                                 @confirm="showHideGroup($event, groupSchemeName.groupName, !groupSchemeName.hidden)">
                                 <template #reference> -->
-                            <span class="group-show-hide-btn"
+                            <el-text size="small" class="group-show-hide-btn"
                                 @click.stop="showHideGroup($event, groupSchemeName.groupName, !groupSchemeName.hidden)"><el-icon>
                                     <View v-if="!groupSchemeName.hidden" />
                                     <Hide v-else />
-                                </el-icon></span>
+                                </el-icon></el-text>
                             <!-- </template>
             </el-popconfirm> -->
-                            <span class="add-scheme-btn"
+                            <el-text size="small" class="add-scheme-btn"
                                 @click.stop="addSchemeItemEvent(groupSchemeName.groupName)"><el-icon>
                                     <Plus />
-                                </el-icon></span>
-                            <span class="drag-group-handle"><el-icon>
+                                </el-icon></el-text>
+                            <el-text size="small" class="drag-group-handle"><el-icon>
                                     <Sort />
-                                </el-icon></span>
+                                </el-icon></el-text>
                         </template>
                         <template #content>
                             <draggable :force-fallback="true" v-model="groupedSchemeList[groupSchemeName.groupName]"
@@ -203,14 +203,14 @@ onUnmounted(() => {
                                         v-if="!config.hiddenUnStar || (config.hiddenUnStar && scheme.star)">
                                         <SchemeItemCard :scheme="scheme" :group-name="groupSchemeName.groupName">
                                             <template #operation-left>
-                                                <el-text @click="starBtnEvent(scheme)" style="margin-right: 10px;">
+                                                <el-text size="small" @click="starBtnEvent(scheme)" style="margin-right: 10px;">
                                                     <el-icon>
                                                         <!-- 默认的实心五星图标比空心小一圈，让它俩叠加以达到视觉大小一致 -->
                                                         <Star style="position: absolute; top: 0; left: 0" />
                                                         <StarFilled v-if="scheme.star" />
                                                     </el-icon>
                                                 </el-text>
-                                                <el-text style="margin-right: 10px"
+                                                <el-text size="small" style="margin-right: 10px"
                                                     class="drag-item-card-scheme-handle">
                                                     <el-icon>
                                                         <Sort />
@@ -264,6 +264,7 @@ onUnmounted(() => {
     width: 100%;
     height: calc(100% - 46px);
     display: flex;
+    background-color: #f4f5f7;
 }
 
 .item-card-addscheme-container {

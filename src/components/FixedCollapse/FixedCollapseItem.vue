@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, onMounted, onUnmounted, ref } from 'vue';
-import { ArrowRight } from '@element-plus/icons-vue';
+import { ArrowRight, Folder, FolderOpened } from '@element-plus/icons-vue';
 import emitter from './EventBus';
 
 
@@ -74,13 +74,17 @@ onUnmounted(() => {
     <div>
         <div :class="`fixedCollapseItem-header ${isOpen ? 'open' : ''}`" @click="toggleItem">
             <div class="fixedCollapseItem-header-text">
+                <el-text size="small" style="margin-right: 5px"><el-icon>
+                        <FolderOpened v-if="isOpen" />
+                        <Folder v-else />
+                    </el-icon></el-text>
                 <slot name="header"></slot>
             </div>
             <div class="fixedCollapseItem-header-icon">
                 <slot name="header-icon-left"></slot>
-                <span class="fixedCollapseItem-header-icon-arrow"><el-icon>
+                <el-text size="small" class="fixedCollapseItem-header-icon-arrow"><el-icon>
                         <ArrowRight />
-                    </el-icon></span>
+                    </el-icon></el-text>
             </div>
         </div>
         <div class="fixedCollapseItem-content" ref="contentDomRef">
@@ -99,6 +103,7 @@ onUnmounted(() => {
     font-size: 14px;
     display: flex;
     justify-content: space-between;
+    background-color: #fff;
 }
 
 .fixedCollapseItem-header-text,

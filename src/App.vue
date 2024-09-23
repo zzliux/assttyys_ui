@@ -17,3 +17,5 @@ onMounted(async () => {
 </template>
 
 <style scoped></style>
+<style>
+</style>
