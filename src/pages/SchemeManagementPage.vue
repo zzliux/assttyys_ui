@@ -18,7 +18,8 @@ import draggable from '@marshallswain/vuedraggable';
 const config = ref<{
     showHiddenGroup: boolean,
     currentCollapseVal: string,
-    collapseAccordion: true,
+    collapseAccordion: boolean,
+    hiddenUnStar: boolean,
 }>(JSON.parse(localStorage.getItem('store.schemeManagement') || '{}'));
 watch(config, (newVal) => {
     localStorage.setItem('store.schemeManagement', JSON.stringify(newVal));
@@ -155,6 +156,7 @@ onUnmounted(() => {
                     </template>
                     <template #default>
                         <el-checkbox v-model="config.showHiddenGroup" label="显示隐藏的分组" size="small" />
+                        <el-checkbox v-model="config.hiddenUnStar" label="隐藏未收藏的方案" size="small" />
                         <el-checkbox v-model="config.collapseAccordion" label="手风琴模式" size="small" />
                     </template>
                 </el-popover>
@@ -197,7 +199,8 @@ onUnmounted(() => {
                                 @update="schemeListDragEndEvent" class="drag-item-card-scheme-container"
                                 :group="{ name: groupSchemeName.groupName }">
                                 <template #item="{ element: scheme, index }">
-                                    <div class="drag-item-card-scheme">
+                                    <div class="drag-item-card-scheme"
+                                        v-if="!config.hiddenUnStar || (config.hiddenUnStar && scheme.star)">
                                         <SchemeItemCard :scheme="scheme" :group-name="groupSchemeName.groupName">
                                             <template #operation-left>
                                                 <el-text @click="starBtnEvent(scheme)" style="margin-right: 10px;">
