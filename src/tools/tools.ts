@@ -117,3 +117,17 @@ export const getGroupColor = (groupName: string): string => {
     }
     return groupColors[sum % groupColors.length];
 }
+
+export const getAncestorBySelector = (element: HTMLElement, selector: string): HTMLElement => {
+    // 从当前元素开始向上遍历DOM树
+    let ancestor = element;
+    while (ancestor !== null) {
+        // 检查当前元素是否匹配选择器
+        if (ancestor.matches(selector)) {
+            return ancestor; // 返回匹配的祖先元素
+        }
+        ancestor = ancestor.parentElement; // 移动到父元素
+    }
+    // 如果没有找到匹配的祖先元素，则返回null
+    return null;
+}

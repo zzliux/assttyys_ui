@@ -75,7 +75,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div>
+    <div class="fixedCollapseItem-container">
         <div :class="`fixedCollapseItem-header ${isOpen ? 'open' : ''}`" @click="toggleItem">
             <div class="fixedCollapseItem-header-text">
                 <div class="fixedCollapseItem-header-prevColorBox" :style="{ backgroundColor: $props.prevColor }"></div>
@@ -104,11 +104,14 @@ onUnmounted(() => {
 .fixedCollapseItem-header {
     border-top: 1px solid #ebeef5;
     /* border-bottom: 1px solid #ebeef5; */
+    position: relative;
+    width: 100%;
     padding: 5px 10px 5px 0px;
     font-size: 14px;
     display: flex;
     justify-content: space-between;
     background-color: #fff;
+    z-index: 1;
 }
 
 .fixedCollapseItem-header-prevColorBox {
@@ -137,6 +140,7 @@ onUnmounted(() => {
     /* 动画的时候不显示滚动条 */
     height: 0px;
     width: 100%;
+    z-index: 0;
 }
 
 .fixedCollapseItem-contentInner {
