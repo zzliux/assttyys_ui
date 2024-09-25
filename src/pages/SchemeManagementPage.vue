@@ -5,10 +5,9 @@ import Nav from '@/components/Nav.vue';
 import { FixedCollapse, FixedCollapseItem } from '@/components/FixedCollapse';
 import type { GroupSchemeName, Scheme } from '@/tools/declares';
 import SchemeItemCard from '@/components/SchemeItemCard.vue';
-import ItemCard from '@/components/ItemCard.vue';
 import globalEmmiter from '@/tools/GlobalEventBus';
 import { getGroupColor, groupedSchemeListToGroupSchemeNames, groupSchemeList } from '@/tools/tools';
-import { Plus, Sort, Star, StarFilled, More, View, Hide } from '@element-plus/icons-vue'
+import { Plus, Sort, Star, StarFilled, More, View, Hide, Folder, FolderOpened } from '@element-plus/icons-vue'
 import SchemeEditDialog from '@/components/SchemeEditDialog/SchemeEditDialog.vue';
 import { ElMessage } from 'element-plus';
 import type { onConfirmOption } from '@/components/SchemeEditDialog';
@@ -179,8 +178,8 @@ onUnmounted(() => {
                 handle=".drag-group-handle" v-bind="dragOptions" @update="groupNamesDragEndEvent"
                 :group="{ name: 'groupNames' }">
                 <template #item="{ element: groupSchemeName, index }">
-                    <FixedCollapseItem
-                        :prevColor="getGroupColor(groupSchemeName.groupName)"
+                    <FixedCollapseItem :header-icon="Folder" :header-icon-active="FolderOpened"
+                        :show-right-arrow-icon="true" :prevColor="getGroupColor(groupSchemeName.groupName)"
                         v-if="(!config.showHiddenGroup && !groupSchemeName.hidden) || config.showHiddenGroup"
                         :name="groupSchemeName.groupName">
                         <template #header><el-text size="small">{{ groupSchemeName.groupName }}</el-text></template>

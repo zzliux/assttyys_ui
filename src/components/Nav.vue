@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ArrowDown } from '@element-plus/icons-vue';
 import { onMounted, ref } from 'vue';
 import { routesDefine } from '../pages/router';
 
@@ -15,7 +16,21 @@ const $props = defineProps({
                 <el-text>ASSTTYYS</el-text>
             </template>
             <template #content>
-                <el-text>{{ $props.name }}</el-text>
+                <!-- <el-text>{{ $props.name }}</el-text> -->
+                <el-dropdown trigger="click" size="small">
+                    <el-text size="small">
+                        {{ $props.name }}<el-icon class="el-icon--right"><arrow-down /></el-icon>
+                    </el-text>
+                    <template #dropdown>
+                        <el-dropdown-menu>
+                            <template v-for="(item, index) in routesDefine">
+                                <el-dropdown-item v-if="item.name !== $props.name" @click="$router.push(item.path)">
+                                    <span>{{ item.name }}</span>
+                                </el-dropdown-item>
+                            </template>
+                        </el-dropdown-menu>
+                    </template>
+                </el-dropdown>
             </template>
             <template #extra>
                 <slot name="extra"></slot>

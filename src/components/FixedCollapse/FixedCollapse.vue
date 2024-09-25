@@ -1,11 +1,8 @@
 <!-- 父的高度固定时，整体高度超出父高度，未打开的折叠面板的item则会固定在父容器的上下两个位置 -->
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue';
-import { getAncestorBySelector, throttle, uuid } from '@/tools/tools';
-import emitter from './EventBus';
+import { onMounted, onUnmounted, provide, ref } from 'vue';
+import { getAncestorBySelector } from '@/tools/tools';
 
-const instanceNamespace = uuid();
-const containerDomId = ref<string>(`fixedCollapse-${instanceNamespace}`);
 const fixedCollapseContainerRef = ref<HTMLDivElement>();
 
 const $props = defineProps({
@@ -14,19 +11,11 @@ const $props = defineProps({
         type: Boolean,
     }
 });
-
-provide('fixedCollapse.instanceNameSpace', instanceNamespace);
-provide('fixedCollapse.instanceProps', $props)
-
 const model = defineModel<string>();
-let emitFlag = false;
-watch(model, (newVal) => {
-    if (emitFlag) {
-        emitFlag = false;
-        return;
-    }
-    emitter.emit('Event.FixedCollapse.ModelUpdate', `${instanceNamespace}:${newVal}`);
-});
+
+provide('fixedCollapse.instanceProps', $props)
+provide('fixedCollapse.instanceModel', model);
+provide('fixedCollapse.containerRef', fixedCollapseContainerRef)
 
 
 // 折叠面板的header超出父容器时，自动固定在父容器顶部
@@ -51,27 +40,17 @@ const containerScrollEvent = (e: Event) => {
 }
 
 onMounted(() => {
-    emitter.on('Event.FixedCollapseItem.ModelUpdate', val => {
-        const [namespace, name] = val.split(':');
-        if (namespace !== instanceNamespace) return;
-        emitFlag = true;
-        model.value = name;
-    });
-    nextTick(() => {
-        emitter.emit('Event.FixedCollapse.ModelUpdate', `${instanceNamespace}:${model.value}`);
-    });
     fixedCollapseContainerRef.value.addEventListener('scroll', containerScrollEvent);
 });
 
 onUnmounted(() => {
-    emitter.off('Event.FixedCollapseItem.ModelUpdate');
     fixedCollapseContainerRef.value?.removeEventListener('scroll', containerScrollEvent);
-})
+});
 
 </script>
 
 <template>
-    <div class="fixed-collapse-container" ref="fixedCollapseContainerRef" :id="containerDomId">
+    <div class="fixed-collapse-container" ref="fixedCollapseContainerRef">
         <slot name="default"></slot>
     </div>
 </template>

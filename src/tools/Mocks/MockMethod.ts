@@ -1,7 +1,10 @@
-import { type AutoWebTypes, type GroupSchemeName, type Scheme } from '../declares';
+import { type AutoWebTypes, type GroupSchemeName, type JobOptions, type Scheme } from '../declares';
 import store from './store';
 import SchemeList from './initDatas/SchemeList';
+import ScheduleDefaultList from './initDatas/ScheduleList';
 import type { onConfirmOption } from '@/components/SchemeEditDialog';
+import { getNextByCron } from '../cron';
+import { mergeOffsetTime } from '../tools';
 
 if (localStorage.getItem('debug')) {
     // 1. 初始化schemeList
@@ -35,6 +38,30 @@ if (localStorage.getItem('debug')) {
         console.log('初始化groupSchemeNames', toSave);
         store.put('groupSchemeNames', toSave);
     }
+
+    // 3. 初始化scheduleList
+    let savedScheduleList = store.get('scheduleList');
+    if (!savedScheduleList) {
+        console.log('初始化scheduleList', ScheduleDefaultList);
+        store.put('scheduleList', ScheduleDefaultList);
+        savedScheduleList = ScheduleDefaultList;
+    }
+    // 3.1 cron更新下次执行时间，时间字段转回date类型
+    savedScheduleList.forEach((item: JobOptions) => {
+        ['lastRunTime', 'nextDate', 'lastStopTime'].forEach(keyName => {
+            try {
+                item[keyName as 'lastRunTime' | 'nextDate' | 'lastStopTime'] = new Date(item[keyName as keyof JobOptions] as string);
+            } catch (e) {
+                console.log(`${item.name}中${keyName}转换失败：${item[keyName as keyof JobOptions]}`)
+                item[keyName as 'lastRunTime' | 'nextDate' | 'lastStopTime'] = null;
+            }
+        })
+        if (item.repeatMode === 3) {
+            item.nextDate = mergeOffsetTime(getNextByCron(item.interval), item.nextOffset);
+        }
+        // jobToSchedule(item); // autojs端特有，用于将job加入schedule，mock做不到该逻辑，先注释
+    });
+    store.put('scheduleList', savedScheduleList);
 }
 
 const updateGroupSchemeNamesBySchemeUpdate = (option: onConfirmOption): void => {
@@ -205,6 +232,9 @@ export const MockMethod: {
         // TODO
         return;
     },
+    getScheduleList: () => {
+        return store.get('scheduleList');
+    }
 };
 
 export default MockMethod;

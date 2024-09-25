@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { inject, onMounted, onUnmounted, ref, watch } from 'vue';
-import { ArrowRight, Folder, FolderOpened } from '@element-plus/icons-vue';
-import emitter from './EventBus';
+import { inject, ref, watch, type ModelRef, type Ref } from 'vue';
+import { ArrowRight } from '@element-plus/icons-vue';
 
 
 const contentDomRef = ref<HTMLDivElement>();
@@ -12,13 +11,30 @@ const $props = defineProps({
         type: String,
         default: '#fff'
     },
+    headerIcon: {
+        type: Object,
+        default: null
+    },
+    headerIconActive: {
+        type: Object,
+        default: null
+    },
+    showRightArrowIcon: {
+        type: Boolean,
+        default: false
+    },
 });
 
-const namespace = inject('fixedCollapse.instanceNameSpace');
 const $parentProps = inject<{ multipart: boolean, modelValue: string }>('fixedCollapse.instanceProps');
+const parentContainerDom = inject<Ref<HTMLDivElement, HTMLDivElement>>('fixedCollapse.containerRef');
+const $parentModel = inject<ModelRef<string>>('fixedCollapse.instanceModel');
 const isOpen = ref(false);
 
 let allNames: string[] = [];
+// 直接监听爸爸的模型值
+watch(() => $parentModel.value, (val) => {
+    modelChangeEvent(val);
+});
 
 function toggleItem() {
     isOpen.value = !isOpen.value;
@@ -31,19 +47,15 @@ function toggleItem() {
     } else {
         allNames = allNames.filter(name => name !== $props.name);
     }
-    emitter.emit('Event.FixedCollapseItem.ModelUpdate', `${namespace}:${allNames.join(',')}`);
+    $parentModel.value = allNames.join(',');
 }
-const parentContainerDom = ref<HTMLElement>();
 const singleDoms = ref<HTMLCollectionOf<Element>>();
 const modelChangeEvent = (val: string) => {
-    parentContainerDom.value = document.getElementById(`fixedCollapse-${namespace}`);
     singleDoms.value = parentContainerDom.value.getElementsByClassName('fixedCollapseItem-header');
 
-    const [instanceNamespace, instanceName] = val.split(':');
-    if (instanceNamespace !== namespace) return;
-    allNames = instanceName ? instanceName.split(',') : [];
+    allNames = val ? val.split(',') : [];
     if (!$parentProps.multipart) {
-        isOpen.value = (instanceName === $props.name);
+        isOpen.value = (val === $props.name);
     } else if ($parentProps.multipart) {
         isOpen.value = (allNames.includes($props.name));
     }
@@ -62,15 +74,6 @@ const modelChangeEvent = (val: string) => {
         isOpen.value = false;
     }
 }
-onMounted(() => {
-    emitter.on('Event.FixedCollapse.ModelUpdate', modelChangeEvent);
-    emitter.on('Event.FixedCollapseItem.ModelUpdate', modelChangeEvent);
-});
-
-onUnmounted(() => {
-    emitter.off('Event.FixedCollapse.ModelUpdate', modelChangeEvent);
-    emitter.off('Event.FixedCollapseItem.ModelUpdate', modelChangeEvent);
-});
 
 </script>
 
@@ -79,15 +82,19 @@ onUnmounted(() => {
         <div :class="`fixedCollapseItem-header ${isOpen ? 'open' : ''}`" @click="toggleItem">
             <div class="fixedCollapseItem-header-text">
                 <div class="fixedCollapseItem-header-prevColorBox" :style="{ backgroundColor: $props.prevColor }"></div>
-                <el-text size="small" style="margin-right: 5px"><el-icon>
-                        <FolderOpened v-if="isOpen" />
-                        <Folder v-else />
-                    </el-icon></el-text>
+                <el-text v-if="$props.headerIconActive || $props.headerIcon" size="small" style="margin-right: 5px">
+                    <el-icon>
+                        <!-- <FolderOpened v-if="isOpen" />
+                        <Folder v-else /> -->
+                        <component :is="$props.headerIconActive" v-if="$props.headerIconActive && isOpen" />
+                        <component :is="$props.headerIcon" v-else-if="$props.headerIcon" />
+                    </el-icon>
+                </el-text>
                 <slot name="header"></slot>
             </div>
             <div class="fixedCollapseItem-header-icon">
                 <slot name="header-icon-left"></slot>
-                <el-text size="small" class="fixedCollapseItem-header-icon-arrow"><el-icon>
+                <el-text v-if="showRightArrowIcon" size="small" class="fixedCollapseItem-header-icon-arrow"><el-icon>
                         <ArrowRight />
                     </el-icon></el-text>
             </div>
@@ -152,7 +159,6 @@ onUnmounted(() => {
 }
 
 .fixedCollapseItem-content.open {
-    height: 50px;
     overflow-y: auto;
 }
 </style>

@@ -1,5 +1,5 @@
 import type { GroupSchemeName, Scheme } from "./declares";
-import groupColors from "./Mocks/groupColors";
+import groupColors from "./GroupColors";
 
 
 // 非时间种子的随机数
@@ -130,4 +130,22 @@ export const getAncestorBySelector = (element: HTMLElement, selector: string): H
     }
     // 如果没有找到匹配的祖先元素，则返回null
     return null;
+}
+
+export const random = function (min: number, max: number) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
+export const mergeOffsetTime = function (date: Date, offsetStr: string) {
+    let offsetTime = 0;
+    if (date && offsetStr) {
+        const parts = offsetStr?.split(',');
+        if (parts.length === 2) {
+            const [offsetMinuteLow, offsetMinuteHigh] = parts.map(item => parseInt(item));
+            if (Number.isInteger(offsetMinuteLow) && Number.isInteger(offsetMinuteHigh)) {
+                offsetTime = random(offsetMinuteLow * 60 * 1000, offsetMinuteHigh * 60 * 1000);
+            }
+        }
+    }
+    return new Date(date.getTime() + offsetTime);
 }

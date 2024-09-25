@@ -45,7 +45,33 @@ export type GroupSchemeName = {
     hidden: boolean,
     schemeNames: string[]
 }
+export type RepeatModeType = 0 | 1 | 2 | 3;
 
+/**
+ * waiting: 啥也没干
+ * queueing: 队列中，等待执行
+ * running: 执行中
+ * done: 运行完成
+ */
+export type StatusType = 'waiting' | 'queueing' | 'running' | 'done';
+
+export type JobOptions = {
+    id?: number;
+    name: string; // job名
+    desc: string; // job描述
+    checked?: boolean; // 是否启用
+    lastRunTime?: Date | string; // 上次运行开始时间
+    lastStopTime?: Date | string; // 上次运行结束时间
+    nextDate: Date | string; // 下次执行时间
+    repeatMode: RepeatModeType; // 重复模式： 0不重复运行，1从开始运行时间计算重复间隔，2从运行结束计算重复间隔，3CRON表达式
+    nextOffset?: string; // 运行间隔偏移，单位分钟，随机数，如-10,10
+    interval: string; // 间隔时间（min）or cront expression
+    status?: StatusType; // 状态
+    config?: Record<string, string>; // 其它配置 包含关联的方案
+    runningCallback?: Function; // 开始运行时执行的回调
+    level?: string; //执行任务优先级
+    inner?: boolean;
+}
 
 // 定义AutoWeb.autoPromise/auto的参数类型和响应类型
 export type AutoWebTypes = {
@@ -103,4 +129,8 @@ export type AutoWebTypes = {
         param: string,
         result: void
     },
+    getScheduleList: {
+        param: void,
+        result: JobOptions[]
+    }
 }
