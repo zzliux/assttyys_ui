@@ -3,24 +3,30 @@
 import { onMounted, onUnmounted, provide, ref } from 'vue';
 import { getAncestorBySelector } from '@/tools/tools';
 
+
 const fixedCollapseContainerRef = ref<HTMLDivElement>();
 
 const $props = defineProps({
     multipart: {
         default: false,
         type: Boolean,
+    },
+    fixHeader: {
+        default: false,
+        type: Boolean
     }
 });
 const model = defineModel<string>();
 
-provide('fixedCollapse.instanceProps', $props)
+provide('fixedCollapse.instanceProps', $props);
 provide('fixedCollapse.instanceModel', model);
-provide('fixedCollapse.containerRef', fixedCollapseContainerRef)
-
+provide('fixedCollapse.containerRef', fixedCollapseContainerRef);
 
 // 折叠面板的header超出父容器时，自动固定在父容器顶部
 // 直接操作dom，不能修改子元素的类名等
 const containerScrollEvent = (e: Event) => {
+    if (!$props.fixHeader) return;
+
     const containerDom = e.target as HTMLDivElement;
     const { x, y } = containerDom.getBoundingClientRect();
     const pointTarget = document.elementFromPoint(x + 1, y + 1);

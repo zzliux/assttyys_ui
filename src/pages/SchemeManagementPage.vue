@@ -173,7 +173,7 @@ onUnmounted(() => {
         </template>
     </Nav>
     <div class="container">
-        <FixedCollapse v-model="collapseVal" :multipart="!config.collapseAccordion">
+        <FixedCollapse v-model="collapseVal" :multipart="!config.collapseAccordion" :fix-header="true">
             <draggable :force-fallback="true" v-model="groupSchemeNames" item-key="groupName"
                 handle=".drag-group-handle" v-bind="dragOptions" @update="groupNamesDragEndEvent"
                 :group="{ name: 'groupNames' }">

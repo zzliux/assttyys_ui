@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { inject, ref, watch, type ModelRef, type Ref } from 'vue';
+import { inject, nextTick, ref, watch, type ModelRef, type Ref } from 'vue';
 import { ArrowRight } from '@element-plus/icons-vue';
 
 
 const contentDomRef = ref<HTMLDivElement>();
 const contentInnerDomRef = ref<HTMLDivElement>();
+const fixedCollapseItemHeaderRef = ref<HTMLDivElement>();
 const $props = defineProps({
     name: String,
     prevColor: {
@@ -26,7 +27,7 @@ const $props = defineProps({
 });
 
 const $parentProps = inject<{ multipart: boolean, modelValue: string }>('fixedCollapse.instanceProps');
-const parentContainerDom = inject<Ref<HTMLDivElement, HTMLDivElement>>('fixedCollapse.containerRef');
+const $parentContainerDom = inject<Ref<HTMLDivElement, HTMLDivElement>>('fixedCollapse.containerRef');
 const $parentModel = inject<ModelRef<string>>('fixedCollapse.instanceModel');
 const isOpen = ref(false);
 
@@ -48,10 +49,15 @@ function toggleItem() {
         allNames = allNames.filter(name => name !== $props.name);
     }
     $parentModel.value = allNames.join(',');
+
+    setTimeout(() => {
+        const event = new Event('scroll');
+        $parentContainerDom.value.dispatchEvent(event)
+    }, 210);
 }
 const singleDoms = ref<HTMLCollectionOf<Element>>();
 const modelChangeEvent = (val: string) => {
-    singleDoms.value = parentContainerDom.value.getElementsByClassName('fixedCollapseItem-header');
+    singleDoms.value = $parentContainerDom.value.getElementsByClassName('fixedCollapseItem-header');
 
     allNames = val ? val.split(',') : [];
     if (!$parentProps.multipart) {
@@ -72,6 +78,8 @@ const modelChangeEvent = (val: string) => {
     } else {
         contentDomRef.value.style.height = `0px`;
         isOpen.value = false;
+        
+        fixedCollapseItemHeaderRef.value.style.top = 'initial';
     }
 }
 
@@ -79,7 +87,7 @@ const modelChangeEvent = (val: string) => {
 
 <template>
     <div class="fixedCollapseItem-container">
-        <div :class="`fixedCollapseItem-header ${isOpen ? 'open' : ''}`" @click="toggleItem">
+        <div ref="fixedCollapseItemHeaderRef" :class="`fixedCollapseItem-header ${isOpen ? 'open' : ''}`" @click="toggleItem">
             <div class="fixedCollapseItem-header-text">
                 <div class="fixedCollapseItem-header-prevColorBox" :style="{ backgroundColor: $props.prevColor }"></div>
                 <el-text v-if="$props.headerIconActive || $props.headerIcon" size="small" style="margin-right: 5px">

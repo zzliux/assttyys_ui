@@ -118,9 +118,6 @@ const editTypeToTitle = (type: editType) => {
 .el-dialog__footer {
     padding-top: 0px;
 }
-/* .el-select-dropdown__list {
-    padding: 0;
-} */
 .el-option-item {
     color: #606266;
     font-size: 12px;
