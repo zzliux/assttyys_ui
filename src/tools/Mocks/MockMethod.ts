@@ -234,6 +234,10 @@ export const MockMethod: {
     },
     getScheduleList: () => {
         return store.get('scheduleList');
+    },
+    saveScheduleList: (scheduleList: JobOptions[]) => {
+        store.put('scheduleList', scheduleList);
+        return { error: 0, message: 'success' };
     }
 };
 

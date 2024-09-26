@@ -7,6 +7,14 @@ import ItemCard from '@/components/ItemCard.vue';
 import { VideoPlay } from '@element-plus/icons-vue';
 import FixedCollapse from '@/components/FixedCollapse/FixedCollapse.vue';
 import FixedCollapseItem from '@/components/FixedCollapse/FixedCollapseItem.vue';
+import { getNextByCron } from '@/tools/cron';
+import { mergeOffsetTime } from '@/tools/tools';
+
+// TODO 新增job
+// TODO job排序
+// TODO 列表刷新
+// TODO 免打扰模式
+
 
 const scheduleList = ref<JobOptions[]>([]);
 const groupSchemeNames = ref<GroupSchemeName[]>();
@@ -15,6 +23,18 @@ onMounted(async () => {
     scheduleList.value = await AutoWeb.autoPromise('getScheduleList');
     groupSchemeNames.value = await AutoWeb.autoPromise('getGroupSchemeNames');
 });
+
+const intervalInputEvent = ($event: Event, item: JobOptions) => {
+    if (item.repeatMode == 3) {
+        item.nextDate = getNextByCron(item.interval);
+    }
+    item.nextDate = mergeOffsetTime(new Date(item.nextDate), item.nextOffset);
+}
+
+const switchChangeEvent = async () => {
+    // TODO 校验
+    await AutoWeb.autoPromise('saveScheduleList', scheduleList.value);
+}
 
 </script>
 <template>
@@ -45,7 +65,8 @@ onMounted(async () => {
                                 <VideoPlay />
                             </el-icon>
                         </div>
-                        <div class="switch-box"><el-switch v-model="item.checked" @click.stop="void 0" size="small" />
+                        <div class="switch-box"><el-switch v-model="item.checked" @change="switchChangeEvent"
+                                @click.stop="void 0" size="small" />
                         </div>
                     </div>
                 </template>
@@ -69,16 +90,19 @@ onMounted(async () => {
                                 <el-option label="CRON表达式" :value="3" />
                             </el-select>
                         </el-form-item>
-                        <el-form-item label="重复间隔(分钟)" size=small>
+                        <el-form-item :label="['重复间隔(分钟)', '重复间隔(分钟)', '重复间隔(分钟)', 'CRON表达式'][item.repeatMode]"
+                            size=small>
                             <el-input v-model="item.interval"
-                                :type="['number', 'number', 'number', 'string'][item.repeatMode]" />
+                                :type="['number', 'number', 'number', 'string'][item.repeatMode]"
+                                @input="intervalInputEvent($event, item)" />
                         </el-form-item>
                         <el-form-item label="下次执行偏移随机数(分钟，用逗号分隔)" size=small>
-                            <el-input v-model="item.nextOffset" />
+                            <el-input v-model="item.nextOffset" @change="intervalInputEvent($event, item)" />
                         </el-form-item>
                         <el-form-item label="下次执行时间" size=small>
                             <el-date-picker popper-class="date-time-picker-panel" v-model="item.nextDate"
-                                type="datetime" placeholder="选择日期时间" :clearable="false" @focus="maskShown = true" />
+                                :editable="false" type="datetime" placeholder="选择日期时间" :clearable="false"
+                                @focus="maskShown = true" />
                         </el-form-item>
                         <el-form-item label="优先级" size=small>
                             <el-input v-model="item.level" type="number" />

@@ -19,6 +19,8 @@ export type Func = {
     config?: FuncConfig[],
 }
 
+export type Result = { error: number, message: string }
+
 export type Scheme = {
     id: number;
     schemeName: string;
@@ -104,16 +106,16 @@ export type AutoWebTypes = {
         result: string[]
     },
     saveScheme: {
-        param: onSchemeSaveConfirmOption
-        result: { error: number, message: string }
+        param: onSchemeSaveConfirmOption,
+        result: Result
     },
     saveGroupSchemeNames: {
         param: GroupSchemeName[],
-        result: { error: number, message: string }
+        result: Result
     },
     removeScheme: {
         param: Scheme,
-        result: { error: number, message: string }
+        result: Result
     },
     versionInfo: {
         param: void,
@@ -132,5 +134,10 @@ export type AutoWebTypes = {
     getScheduleList: {
         param: void,
         result: JobOptions[]
+    }
+    // 偷个懒，schedule直接全部保存
+    saveScheduleList: {
+        param: JobOptions[],
+        result: Result,
     }
 }
