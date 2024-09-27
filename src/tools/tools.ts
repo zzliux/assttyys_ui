@@ -147,5 +147,9 @@ export const mergeOffsetTime = function (date: Date, offsetStr: string) {
             }
         }
     }
-    return new Date(date.getTime() + offsetTime);
+    try {
+        return new Date(date.getTime() + offsetTime);
+    } catch (e){
+        return null;
+    }
 }

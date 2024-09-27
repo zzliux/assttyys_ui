@@ -238,6 +238,10 @@ export const MockMethod: {
     saveScheduleList: (scheduleList: JobOptions[]) => {
         store.put('scheduleList', scheduleList);
         return { error: 0, message: 'success' };
+    },
+    scheduleChange: (job: JobOptions) => {
+		// jobToSchedule(job);
+		// schedule.immediateTimerInterval();
     }
 };
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Scheme } from '@/tools/declares';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import type { editType, onConfirmCallback } from '.';
 import { AutoWeb } from '@/tools/AutoWeb';
 import { deepClone } from '@/tools/tools';

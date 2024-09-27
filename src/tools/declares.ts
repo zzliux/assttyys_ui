@@ -139,5 +139,9 @@ export type AutoWebTypes = {
     saveScheduleList: {
         param: JobOptions[],
         result: Result,
+    },
+    scheduleChange: {
+        param: JobOptions,
+        result: void,
     }
 }

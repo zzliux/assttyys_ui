@@ -2,27 +2,43 @@
 import Nav from '@/components/Nav.vue';
 import { AutoWeb } from '@/tools/AutoWeb';
 import type { GroupSchemeName, JobOptions } from '@/tools/declares';
-import { onMounted, ref } from 'vue';
-import ItemCard from '@/components/ItemCard.vue';
-import { VideoPlay } from '@element-plus/icons-vue';
+import { onMounted, ref, watch } from 'vue';
+import { VideoPlay, More, Plus, Operation } from '@element-plus/icons-vue';
 import FixedCollapse from '@/components/FixedCollapse/FixedCollapse.vue';
 import FixedCollapseItem from '@/components/FixedCollapse/FixedCollapseItem.vue';
 import { getNextByCron } from '@/tools/cron';
 import { mergeOffsetTime } from '@/tools/tools';
+import { ElMessage } from 'element-plus';
 
-// TODO 新增job
-// TODO job排序
+// TODO 新增job（名字、描述）
+// TODO 修改job（名字、描述）
+// TODO 删除
+// DONE job排序
 // TODO 列表刷新
 // TODO 免打扰模式
 
+type orderByType = 'id' | 'level' | 'nextDate';
+const config = ref<{
+    orderBy: orderByType, // 排序
+
+}>(JSON.parse(localStorage.getItem('store.Scheduler') || '{}'));
+watch(config, (newVal, oldVal) => {
+    localStorage.setItem('store.Scheduler', JSON.stringify(newVal));
+}, { deep: true });
 
 const scheduleList = ref<JobOptions[]>([]);
 const groupSchemeNames = ref<GroupSchemeName[]>();
 const maskShown = ref<boolean>(false);
 onMounted(async () => {
-    scheduleList.value = await AutoWeb.autoPromise('getScheduleList');
+    await loadData();
     groupSchemeNames.value = await AutoWeb.autoPromise('getGroupSchemeNames');
 });
+
+const loadData = async () => {
+    const list = await AutoWeb.autoPromise('getScheduleList');
+    reSort(list);
+    scheduleList.value = list;
+}
 
 const intervalInputEvent = ($event: Event, item: JobOptions) => {
     if (item.repeatMode == 3) {
@@ -31,14 +47,90 @@ const intervalInputEvent = ($event: Event, item: JobOptions) => {
     item.nextDate = mergeOffsetTime(new Date(item.nextDate), item.nextOffset);
 }
 
-const switchChangeEvent = async () => {
-    // TODO 校验
+const switchChangeEvent = async (job: JobOptions) => {
+    if (job.checked) {
+        if (!job.nextDate) {
+            ElMessage.error('下次执行时间不能为空');
+            job.checked = false;
+            return;
+        }
+    }
+    await AutoWeb.autoPromise('saveScheduleList', scheduleList.value);
+    await AutoWeb.autoPromise('scheduleChange', job);
+    reSort(scheduleList.value);
+}
+
+const orderByBtnClickEvent = () => {
+    const map: Record<orderByType, orderByType> = { id: 'level', level: 'nextDate', nextDate: 'id' };
+    config.value.orderBy = map[config.value.orderBy || 'id'];
+    reSort(scheduleList.value);
+}
+
+const reSort = (list: JobOptions[]) => {
+    if (config.value.orderBy === 'id' || !config.value.orderBy) {
+        list.sort((a, b) => (a.id - b.id));
+    } else if (config.value.orderBy === 'level') {
+        list.sort((a, b) => {
+            if (a.level === b.level) {
+                return a.id - b.id;
+            }
+            return parseInt(b.level) - parseInt(a.level);
+        });
+    } else if (config.value.orderBy === 'nextDate') {
+        list.sort((a, b) => {
+            if (a.nextDate && b.nextDate) {
+                return new Date(a.nextDate).getTime() - new Date(b.nextDate).getTime();
+            } else if (a.nextDate && !b.nextDate) {
+                return 1;
+            } else if (!a.nextDate && b.nextDate) {
+                return -1;
+            }
+            return 0;
+        });
+    }
+}
+
+const runBtnEvent = () => {
+    // TODO
+}
+
+const modifyBtnEvent = () => {
+    // TODO
+}
+
+const deleteConfirmBtnEvent = async (job: JobOptions) => {
+    scheduleList.value = scheduleList.value.filter(v => v.name !== job.name);
     await AutoWeb.autoPromise('saveScheduleList', scheduleList.value);
 }
 
 </script>
 <template>
-    <Nav name="定时任务" />
+    <Nav name="定时任务">
+        <template #extra>
+            <span style="margin-right: 10px;">
+                <el-button link>
+                    <el-icon>
+                        <Plus />
+                    </el-icon>
+                </el-button>
+            </span>
+            <span style="margin-right: 10px">
+                <el-popover placement="bottom" trigger="click">
+                    <template #reference>
+                        <el-button link><el-icon>
+                                <More />
+                            </el-icon></el-button>
+                    </template>
+                    <template #default>
+                        <el-button link size="small" style="width: 100%; justify-content: flex-start;"
+                            @click="orderByBtnClickEvent">排序：{{ {
+                                id: '默认', level: '优先级', nextDate: '下次执行时间'
+                            }[config.orderBy || 'id'] }}</el-button>
+                    </template>
+                </el-popover>
+            </span>
+        </template>
+    </Nav>
     <div class="container">
         <FixedCollapse :multipart="false">
             <FixedCollapseItem v-for="(item, index) in scheduleList" :name="`${item.id} ${item.name}`">
@@ -59,19 +151,41 @@ const switchChangeEvent = async () => {
                     </div>
                 </template>
                 <template #header-icon-left>
+
                     <div style="display: flex;">
-                        <div @click.stop="void 0" class="play-icon-box">
-                            <el-icon>
-                                <VideoPlay />
-                            </el-icon>
+                        <div class="operation-box">
+                            <el-popover placement="left" :width="55" :hide-after="0" :auto-close="1000" trigger="click"
+                                popper-class="job-item-operation">
+                                <template #reference>
+                                    <el-button @click.stop="void 0" size="small" link>
+                                        <el-icon>
+                                            <Operation />
+                                        </el-icon>
+                                    </el-button>
+                                </template>
+
+                                <template #default>
+                                    <el-button link size="small" type="success"
+                                        @click="runBtnEvent">运行</el-button><br />
+                                    <el-button link size="small" type="warning"
+                                        @click="modifyBtnEvent">修改</el-button><br />
+                                    <el-popconfirm title="确认是否删除" @confirm="deleteConfirmBtnEvent(item)"
+                                        confirm-button-text="确认" cancel-button-text="取消">
+                                        <template #reference>
+                                            <el-button link size="small" type="danger">删除</el-button>
+                                        </template>
+                                    </el-popconfirm>
+                                </template>
+                            </el-popover>
                         </div>
-                        <div class="switch-box"><el-switch v-model="item.checked" @change="switchChangeEvent"
+                        <div class="switch-box"><el-switch v-model="item.checked" @change="switchChangeEvent(item)"
                                 @click.stop="void 0" size="small" />
                         </div>
                     </div>
                 </template>
                 <template #content>
-                    <el-form label-position="left" :model="item" label-width="auto" size="small" class="form-container">
+                    <el-form label-position="left" :model="item" label-width="auto" size="small" class="form-container"
+                        :disabled="item.checked">
                         <el-form-item label="运行方案" size=small>
                             <el-select size="small" v-model="item.config.scheme" placeholder="请选择方案">
                                 <el-option-group v-for="group in groupSchemeNames" :key="group.groupName"
@@ -133,13 +247,9 @@ const switchChangeEvent = async () => {
     flex-wrap: wrap;
 }
 
-.play-icon-box {
-    display: flex;
-    align-items: center;
-    height: 24px;
+.operation-box {
+    /* display: flex; */
     margin-right: 10px;
-    font-size: 16px;
-    color: #909399
 }
 
 .switch-box {
@@ -181,6 +291,7 @@ const switchChangeEvent = async () => {
 
 .el-input__wrapper,
 .el-select__wrapper {
+    background-color: initial !important;
     border-radius: 0 !important;
     box-shadow: none !important;
     border-bottom: 1px solid var(--el-border-color) !important;
@@ -210,5 +321,9 @@ const switchChangeEvent = async () => {
 
 .el-popper[data-popper-placement^=bottom]>.el-popper__arrow {
     display: none;
+}
+
+.el-popover.el-popper.job-item-operation {
+    min-width: initial;
 }
 </style>
