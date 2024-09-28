@@ -50,13 +50,16 @@ if (localStorage.getItem('debug')) {
     savedScheduleList.forEach((item: JobOptions) => {
         ['lastRunTime', 'nextDate', 'lastStopTime'].forEach(keyName => {
             try {
-                item[keyName as 'lastRunTime' | 'nextDate' | 'lastStopTime'] = new Date(item[keyName as keyof JobOptions] as string);
+                const dtstr = item[keyName as keyof JobOptions] as string;
+                if (dtstr) {
+                    item[keyName as 'lastRunTime' | 'nextDate' | 'lastStopTime'] = new Date();
+                }
             } catch (e) {
                 console.log(`${item.name}中${keyName}转换失败：${item[keyName as keyof JobOptions]}`)
                 item[keyName as 'lastRunTime' | 'nextDate' | 'lastStopTime'] = null;
             }
         })
-        if (item.repeatMode === 3) {
+        if (item.repeatMode === 3 && item.checked) {
             item.nextDate = mergeOffsetTime(getNextByCron(item.interval), item.nextOffset);
         }
         // jobToSchedule(item); // autojs端特有，用于将job加入schedule，mock做不到该逻辑，先注释

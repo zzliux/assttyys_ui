@@ -64,7 +64,7 @@ export type JobOptions = {
     checked?: boolean; // 是否启用
     lastRunTime?: Date | string; // 上次运行开始时间
     lastStopTime?: Date | string; // 上次运行结束时间
-    nextDate: Date | string; // 下次执行时间
+    nextDate?: Date | string; // 下次执行时间
     repeatMode: RepeatModeType; // 重复模式： 0不重复运行，1从开始运行时间计算重复间隔，2从运行结束计算重复间隔，3CRON表达式
     nextOffset?: string; // 运行间隔偏移，单位分钟，随机数，如-10,10
     interval: string; // 间隔时间（min）or cront expression

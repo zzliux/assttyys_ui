@@ -7,7 +7,7 @@ import { More, Plus, Operation, Refresh } from '@element-plus/icons-vue';
 import FixedCollapse from '@/components/FixedCollapse/FixedCollapse.vue';
 import FixedCollapseItem from '@/components/FixedCollapse/FixedCollapseItem.vue';
 import { getNextByCron } from '@/tools/cron';
-import { mergeOffsetTime } from '@/tools/tools';
+import { mergeOffsetTime, toStdFormatDateStr } from '@/tools/tools';
 import { ElMessage } from 'element-plus';
 import ScheduleJobEditDialog, { type editType, type onConfirmOption } from '@/components/ScheduleJobEditDialog';
 
@@ -23,7 +23,7 @@ watch(config, (newVal, oldVal) => {
 
 const scheduleList = ref<JobOptions[]>([]);
 const groupSchemeNames = ref<GroupSchemeName[]>();
-const maskShown = ref<boolean>(true); // TODO 修改为false并由页面其它逻辑控制，当前为临时开发使用
+const maskShown = ref<boolean>(false);
 const scheduleJobEditDialogShown = ref<boolean>(false);
 const editJob = ref<JobOptions>(null);
 const editJobType = ref<editType>(null);
@@ -51,11 +51,6 @@ const intervalInputEvent = ($event: Event, item: JobOptions) => {
 
 const switchChangeEvent = async (job: JobOptions) => {
     if (job.checked) {
-        if (!job.nextDate) {
-            ElMessage.error('下次执行时间不能为空');
-            job.checked = false;
-            return;
-        }
         if (!await AutoWeb.autoPromise('getScheme', job.config.scheme)) {
             ElMessage.error('关联方案不存在，请先关联方案');
             job.checked = false;
@@ -63,6 +58,11 @@ const switchChangeEvent = async (job: JobOptions) => {
         }
         if (!job.level) {
             ElMessage.error('请设置优先级');
+            job.checked = false;
+            return;
+        }
+        if (!job.nextDate) {
+            ElMessage.error('下次执行时间不能为空');
             job.checked = false;
             return;
         }
@@ -228,9 +228,9 @@ const lazyModeBtnClickEvent = async () => {
                             </el-text>
                         </div>
                         <div><el-text size="small" type="info">{{ item.desc }}</el-text></div>
-                        <div><el-text size="small" type="info">上次执行开始时间：{{ item.lastRunTime }}</el-text></div>
-                        <div><el-text size="small" type="info">上次执行结束时间：{{ item.lastStopTime }}</el-text></div>
-                        <div><el-text size="small" type="info">下次执行时间：{{ item.nextDate }}</el-text></div>
+                        <div><el-text size="small" type="info">上次执行开始时间：{{ toStdFormatDateStr(item.lastRunTime) }}</el-text></div>
+                        <div><el-text size="small" type="info">上次执行结束时间：{{ toStdFormatDateStr(item.lastStopTime) }}</el-text></div>
+                        <div><el-text size="small" type="info">下次执行时间：{{ toStdFormatDateStr(item.nextDate) }}</el-text></div>
                     </div>
                 </template>
                 <template #header-icon-left>

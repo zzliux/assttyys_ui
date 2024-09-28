@@ -149,7 +149,27 @@ export const mergeOffsetTime = function (date: Date, offsetStr: string) {
     }
     try {
         return new Date(date.getTime() + offsetTime);
-    } catch (e){
+    } catch (e) {
         return null;
     }
 }
+
+// 将日期转换为yyyy-mm-dd hh:ii:ss格式
+export const toStdFormatDateStr = function (date: Date | string): string {
+    if (!date) return;
+    
+    const parsedDate = typeof date === 'string' ? new Date(date) : date;
+
+    if (isNaN(parsedDate.getTime())) {
+        throw new Error('Invalid date');
+    }
+
+    const year = parsedDate.getFullYear();
+    const month = String(parsedDate.getMonth() + 1).padStart(2, '0'); // 月份从0开始，所以加1
+    const day = String(parsedDate.getDate()).padStart(2, '0');
+    const hours = String(parsedDate.getHours()).padStart(2, '0');
+    const minutes = String(parsedDate.getMinutes()).padStart(2, '0');
+    const seconds = String(parsedDate.getSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
