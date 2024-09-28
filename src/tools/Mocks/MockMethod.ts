@@ -242,7 +242,13 @@ export const MockMethod: {
     scheduleChange: (job: JobOptions) => {
 		// jobToSchedule(job);
 		// schedule.immediateTimerInterval();
-    }
+    },
+    setScheduleLazyMode: (mode) => {
+		// schedule.lazyMode = lazyMode;
+    },
+    getScheduleLazyMode: () => {
+        return false;
+    },
 };
 
 export default MockMethod;

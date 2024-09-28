@@ -3,19 +3,14 @@ import Nav from '@/components/Nav.vue';
 import { AutoWeb } from '@/tools/AutoWeb';
 import type { GroupSchemeName, JobOptions } from '@/tools/declares';
 import { onMounted, ref, watch } from 'vue';
-import { VideoPlay, More, Plus, Operation } from '@element-plus/icons-vue';
+import { More, Plus, Operation, Refresh } from '@element-plus/icons-vue';
 import FixedCollapse from '@/components/FixedCollapse/FixedCollapse.vue';
 import FixedCollapseItem from '@/components/FixedCollapse/FixedCollapseItem.vue';
 import { getNextByCron } from '@/tools/cron';
 import { mergeOffsetTime } from '@/tools/tools';
 import { ElMessage } from 'element-plus';
+import ScheduleJobEditDialog, { type editType, type onConfirmOption } from '@/components/ScheduleJobEditDialog';
 
-// TODO 新增job（名字、描述）
-// TODO 修改job（名字、描述）
-// TODO 删除
-// DONE job排序
-// TODO 列表刷新
-// TODO 免打扰模式
 
 type orderByType = 'id' | 'level' | 'nextDate';
 const config = ref<{
@@ -28,10 +23,17 @@ watch(config, (newVal, oldVal) => {
 
 const scheduleList = ref<JobOptions[]>([]);
 const groupSchemeNames = ref<GroupSchemeName[]>();
-const maskShown = ref<boolean>(false);
+const maskShown = ref<boolean>(true); // TODO 修改为false并由页面其它逻辑控制，当前为临时开发使用
+const scheduleJobEditDialogShown = ref<boolean>(false);
+const editJob = ref<JobOptions>(null);
+const editJobType = ref<editType>(null);
+const lazyMode = ref<boolean>(false);
+
 onMounted(async () => {
     await loadData();
     groupSchemeNames.value = await AutoWeb.autoPromise('getGroupSchemeNames');
+
+    lazyMode.value = await AutoWeb.autoPromise('getScheduleLazyMode');
 });
 
 const loadData = async () => {
@@ -51,6 +53,16 @@ const switchChangeEvent = async (job: JobOptions) => {
     if (job.checked) {
         if (!job.nextDate) {
             ElMessage.error('下次执行时间不能为空');
+            job.checked = false;
+            return;
+        }
+        if (!await AutoWeb.autoPromise('getScheme', job.config.scheme)) {
+            ElMessage.error('关联方案不存在，请先关联方案');
+            job.checked = false;
+            return;
+        }
+        if (!job.level) {
+            ElMessage.error('请设置优先级');
             job.checked = false;
             return;
         }
@@ -90,12 +102,39 @@ const reSort = (list: JobOptions[]) => {
     }
 }
 
-const runBtnEvent = () => {
-    // TODO
+const addBtnEvent = () => {
+    editJobType.value = 'add';
+    editJob.value = {
+        name: '',
+        desc: '',
+        checked: false,
+        repeatMode: null,
+        interval: null,
+        nextDate: null,
+        config: {
+            scheme: '请选择关联方案'
+        },
+    };
+    scheduleJobEditDialogShown.value = true;
 }
 
-const modifyBtnEvent = () => {
-    // TODO
+const refreshBtnEvent = async () => {
+    await loadData();
+}
+const runBtnEvent = async (job: JobOptions) => {
+    if (!job.checked) {
+        ElMessage.error('请先启用任务');
+        return;
+    }
+    job.nextDate = new Date();
+    await AutoWeb.autoPromise('saveScheduleList', scheduleList.value);
+    await AutoWeb.autoPromise('scheduleChange', job);
+}
+
+const modifyBtnEvent = (job: JobOptions) => {
+    editJob.value = job;
+    editJobType.value = 'modify';
+    scheduleJobEditDialogShown.value = true;
 }
 
 const deleteConfirmBtnEvent = async (job: JobOptions) => {
@@ -103,12 +142,50 @@ const deleteConfirmBtnEvent = async (job: JobOptions) => {
     await AutoWeb.autoPromise('saveScheduleList', scheduleList.value);
 }
 
+const jobEditConfirmEvent = async (option: onConfirmOption) => {
+    if (option.type === 'add') {
+        const j = scheduleList.value.find(v => v.name === option.newScheduleJob.name);
+        if (j) {
+            ElMessage.error('任务名已存在，请修改任务名');
+            return false;
+        }
+        option.newScheduleJob.id = scheduleList.value.reduce((p, c) => Math.max(p, c.id), 0) + 1;
+        scheduleList.value.push(option.newScheduleJob);
+        reSort(scheduleList.value);
+        await AutoWeb.autoPromise('saveScheduleList', scheduleList.value);
+        return true;
+    } else if (option.type === 'modify') {
+        if ((scheduleList.value.filter(v => v.name === option.oldScheduleJob.name).length > 1)) {
+            ElMessage.error('任务名已存在，请修改任务名');
+            return false;
+        }
+        const index = scheduleList.value.findIndex(v => v.name === option.oldScheduleJob.name);
+        scheduleList.value[index] = option.newScheduleJob;
+        reSort(scheduleList.value);
+        await AutoWeb.autoPromise('saveScheduleList', scheduleList.value);
+        return true;
+    }
+    return true;
+}
+
+const lazyModeBtnClickEvent = async () => {
+    lazyMode.value = !lazyMode.value;
+    await AutoWeb.autoPromise('setScheduleLazyMode', lazyMode.value);
+}
+
 </script>
 <template>
     <Nav name="定时任务">
         <template #extra>
             <span style="margin-right: 10px;">
-                <el-button link>
+                <el-button link @click="refreshBtnEvent">
+                    <el-icon>
+                        <Refresh />
+                    </el-icon>
+                </el-button>
+            </span>
+            <span style="margin-right: 10px;">
+                <el-button link @click="addBtnEvent">
                     <el-icon>
                         <Plus />
                     </el-icon>
@@ -122,10 +199,16 @@ const deleteConfirmBtnEvent = async (job: JobOptions) => {
                             </el-icon></el-button>
                     </template>
                     <template #default>
-                        <el-button link size="small" style="width: 100%; justify-content: flex-start;"
-                            @click="orderByBtnClickEvent">排序：{{ {
-                                id: '默认', level: '优先级', nextDate: '下次执行时间'
-                            }[config.orderBy || 'id'] }}</el-button>
+                        <div style="display: block;">
+                            <el-button link size="small" style="width: 100%; justify-content: flex-start;"
+                                @click="orderByBtnClickEvent">排序：{{ {
+                                    id: '默认', level: '优先级', nextDate: '下次执行时间'
+                                }[config.orderBy || 'id'] }}</el-button>
+                        </div>
+                        <div style="display: block;">
+                            <el-button link size="small" style="width: 100%; justify-content: flex-start;"
+                                @click="lazyModeBtnClickEvent">免打扰模式：{{ lazyMode ? '开启' : '关闭' }}</el-button>
+                        </div>
                     </template>
                 </el-popover>
             </span>
@@ -154,10 +237,11 @@ const deleteConfirmBtnEvent = async (job: JobOptions) => {
 
                     <div style="display: flex;">
                         <div class="operation-box">
-                            <el-popover placement="left" :width="55" :hide-after="0" :auto-close="1000" trigger="click"
+                            <el-popover placement="left" :width="80" :hide-after="0" :auto-close="2000" trigger="click"
                                 popper-class="job-item-operation">
                                 <template #reference>
-                                    <el-button @click.stop="void 0" size="small" link>
+                                    <el-button @click.stop="void 0" size="small" link
+                                        style="font-size: 14px; color: #909399;">
                                         <el-icon>
                                             <Operation />
                                         </el-icon>
@@ -166,13 +250,13 @@ const deleteConfirmBtnEvent = async (job: JobOptions) => {
 
                                 <template #default>
                                     <el-button link size="small" type="success"
-                                        @click="runBtnEvent">运行</el-button><br />
+                                        @click="runBtnEvent(item)">立即执行</el-button><br />
                                     <el-button link size="small" type="warning"
-                                        @click="modifyBtnEvent">修改</el-button><br />
+                                        @click="modifyBtnEvent(item)">修　　改</el-button><br />
                                     <el-popconfirm title="确认是否删除" @confirm="deleteConfirmBtnEvent(item)"
                                         confirm-button-text="确认" cancel-button-text="取消">
                                         <template #reference>
-                                            <el-button link size="small" type="danger">删除</el-button>
+                                            <el-button link size="small" type="danger">删　　除</el-button>
                                         </template>
                                     </el-popconfirm>
                                 </template>
@@ -204,7 +288,7 @@ const deleteConfirmBtnEvent = async (job: JobOptions) => {
                                 <el-option label="CRON表达式" :value="3" />
                             </el-select>
                         </el-form-item>
-                        <el-form-item :label="['重复间隔(分钟)', '重复间隔(分钟)', '重复间隔(分钟)', 'CRON表达式'][item.repeatMode]"
+                        <el-form-item :label="['重复间隔(分钟)', '重复间隔(分钟)', '重复间隔(分钟)', 'CRON表达式'][item.repeatMode || 0]"
                             size=small>
                             <el-input v-model="item.interval"
                                 :type="['number', 'number', 'number', 'string'][item.repeatMode]"
@@ -226,6 +310,8 @@ const deleteConfirmBtnEvent = async (job: JobOptions) => {
             </FixedCollapseItem>
         </FixedCollapse>
         <div v-if="maskShown" class="mask" @click="maskShown = false"></div>
+        <ScheduleJobEditDialog v-if="scheduleJobEditDialogShown" v-model="scheduleJobEditDialogShown" :job="editJob"
+            :onConfirm="jobEditConfirmEvent" :type="editJobType" />
     </div>
 </template>
 <style scoped>

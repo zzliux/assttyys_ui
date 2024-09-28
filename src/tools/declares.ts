@@ -143,5 +143,13 @@ export type AutoWebTypes = {
     scheduleChange: {
         param: JobOptions,
         result: void,
+    },
+    setScheduleLazyMode: {
+        param: boolean,
+        result: void,
+    },
+    getScheduleLazyMode: {
+        param: void,
+        result: boolean
     }
 }
