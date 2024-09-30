@@ -57,6 +57,44 @@ export type RepeatModeType = 0 | 1 | 2 | 3;
  */
 export type StatusType = 'waiting' | 'queueing' | 'running' | 'done';
 
+// export type SettingItem = {
+//     desc: string, // '点击/滑动模式',
+//     name: string, // 'tapType',
+//     type: string, //'assttyys_setting',
+//     stype: 'list', // 'list',
+//     data: string[], // ['无障碍', 'Root', 'Shell', 'RootAutomator'],
+//     value: string, //'无障碍'
+// } | {
+//     desc: string, // '推送地址',
+//     name: string, // 'oneBot_url',
+//     type: string, // 'assttyys_setting',
+//     stype: 'text', // 'text',
+//     value: string, // 'http://19n=666666'
+// }| {
+//     desc: string, // '无障碍服务(仅使用无障碍模式时生效)',
+//     name: string, //'autoService',
+//     type: string, // 'autojs_inner_setting_auto_service',
+//     stype?: 'switch',
+//     enabled: boolean, // true
+// };
+export type SettingItem = {
+    desc: string,
+    name: string,
+    type: string,
+    stype?: 'list' | 'text' | 'switch',
+    data?: string[],
+    value?: string,
+    enabled?: boolean,
+}
+
+export type PackageInfo = {
+    appName: string,
+    packageName: string, // 获取应用包名，可用于卸载和启动应用
+    versionName: string, // 获取应用版本名
+    versionCode: number, // 获取应用版本号
+    referred: boolean, // 是否关联
+}
+
 export type JobOptions = {
     id?: number;
     name: string; // job名
@@ -151,5 +189,33 @@ export type AutoWebTypes = {
     getScheduleLazyMode: {
         param: void,
         result: boolean
-    }
+    },
+    getSettings: {
+        param: void,
+        result: SettingItem[]
+    },
+    saveSetting: {
+        param: SettingItem,
+        result: Result
+    },
+    startActivityForLog: {
+        param: void,
+        result: void,
+    },
+    clearStorage: {
+        param: void,
+        result: void,
+    },
+    getToSetDefaultLaunchAppList: {
+        param: void,
+        result: PackageInfo[],
+    },
+    getIconByPackageName: {
+        param: string, // package_name
+        result: string, // base64 data url: 'data:image/png;base64,' + android.util.Base64.encodeToString(baos.toByteArray(), android.util.Base64.NO_WRAP);
+    },
+    saveToSetDefaultLaunchAppList: {
+        param: string[],
+        result: Result,
+    },
 }

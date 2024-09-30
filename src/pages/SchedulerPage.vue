@@ -228,9 +228,12 @@ const lazyModeBtnClickEvent = async () => {
                             </el-text>
                         </div>
                         <div><el-text size="small" type="info">{{ item.desc }}</el-text></div>
-                        <div><el-text size="small" type="info">上次执行开始时间：{{ toStdFormatDateStr(item.lastRunTime) }}</el-text></div>
-                        <div><el-text size="small" type="info">上次执行结束时间：{{ toStdFormatDateStr(item.lastStopTime) }}</el-text></div>
-                        <div><el-text size="small" type="info">下次执行时间：{{ toStdFormatDateStr(item.nextDate) }}</el-text></div>
+                        <div><el-text size="small" type="info">上次执行开始时间：{{ toStdFormatDateStr(item.lastRunTime)
+                                }}</el-text></div>
+                        <div><el-text size="small" type="info">上次执行结束时间：{{ toStdFormatDateStr(item.lastStopTime)
+                                }}</el-text></div>
+                        <div><el-text size="small" type="info">下次执行时间：{{ toStdFormatDateStr(item.nextDate) }}</el-text>
+                        </div>
                     </div>
                 </template>
                 <template #header-icon-left>
@@ -405,7 +408,7 @@ const lazyModeBtnClickEvent = async () => {
     left: calc(50% - 161px) !important;
 }
 
-.el-popper[data-popper-placement^=bottom]>.el-popper__arrow {
+.el-popper>.el-popper__arrow {
     display: none;
 }
 

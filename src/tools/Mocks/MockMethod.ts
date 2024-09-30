@@ -1,10 +1,12 @@
-import { type AutoWebTypes, type GroupSchemeName, type JobOptions, type Scheme } from '../declares';
-import store from './store';
+import { type AutoWebTypes, type GroupSchemeName, type JobOptions, type PackageInfo, type Scheme } from '../declares';
+import store, { storeCommon } from './store';
 import SchemeList from './initDatas/SchemeList';
 import ScheduleDefaultList from './initDatas/ScheduleList';
 import type { onConfirmOption } from '@/components/SchemeEditDialog';
 import { getNextByCron } from '../cron';
 import { mergeOffsetTime } from '../tools';
+import SettingList from './initDatas/SettingList';
+import { storages } from './storages';
 
 if (localStorage.getItem('debug')) {
     // 1. 初始化schemeList
@@ -173,6 +175,9 @@ export const MockMethod: {
         const schemeList = store.get('schemeList');
         const { type, oldScheme, newScheme } = params;
         if (type === 'modify') {
+            if (!newScheme.schemeName) {
+                return { error: 1, message: '方案名不能为空' };
+            }
             const index = schemeList.findIndex((scheme: Scheme) => scheme.schemeName === oldScheme.schemeName);
             if (index === -1) {
                 return { error: 1, message: '未找到该方案' };
@@ -183,6 +188,9 @@ export const MockMethod: {
             return { error: 0, message: 'success' };
         } else if (type === 'add' || type === 'copy') {
             const index = schemeList.findIndex((scheme: Scheme) => scheme.schemeName === newScheme.schemeName);
+            if (!newScheme.schemeName) {
+                return { error: 1, message: '方案名不能为空' };
+            }
             if (index !== -1) {
                 return { error: 1, message: '方案名重复' };
             }
@@ -243,15 +251,90 @@ export const MockMethod: {
         return { error: 0, message: 'success' };
     },
     scheduleChange: (job: JobOptions) => {
-		// jobToSchedule(job);
-		// schedule.immediateTimerInterval();
+        // jobToSchedule(job);
+        // schedule.immediateTimerInterval();
     },
     setScheduleLazyMode: (mode) => {
-		// schedule.lazyMode = lazyMode;
+        // schedule.lazyMode = lazyMode;
     },
     getScheduleLazyMode: () => {
         return false;
     },
+    getSettings: () => {
+        // TODO
+        const storeSettings = storeCommon.get('settings', {});
+        return SettingList.map(settingItem => {
+            if (typeof storeSettings[settingItem.name] === 'undefined') {
+                return { ...settingItem };
+            }
+            if (settingItem.stype === 'list' || settingItem.stype === 'text') {
+                return { ...settingItem, value: storeSettings[settingItem.name] };
+            } else if (settingItem.stype === 'switch' || !settingItem.stype) {
+                return { ...settingItem, enabled: storeSettings[settingItem.name] };
+            }
+        });
+    },
+    saveSetting: (params) => {
+        // TODO
+        const storeSettings = storeCommon.get('settings', {});
+        if (params.stype === 'list' || params.stype === 'text') {
+            storeSettings[params.name] = params.value;
+        } else { // switch
+            storeSettings[params.name] = params.enabled;
+        }
+        storeCommon.put('settings', storeSettings);
+        return { error: 0, message: 'success' };
+    },
+    startActivityForLog: () => {
+        // TODO
+        return;
+    },
+    clearStorage: () => {
+        storages.remove('asttyys_ng');
+        return;
+    },
+    getToSetDefaultLaunchAppList: (): PackageInfo[] => {
+        // TODO
+        return [{
+            appName: 'assttyys_ng',
+            packageName: 'com.example.script161',
+            versionName: '1.0.0',
+            versionCode: 1,
+            referred: false
+        }, {
+            appName: '魅族游戏框架',
+            packageName: 'com.meizu.gamecenter.service',
+            versionName: '5.4.0',
+            versionCode: 5004000,
+            referred: false
+        }, {
+            appName: 'assttyys',
+            packageName: 'com.xixdaoq.rsicybi',
+            versionName: '0.0.4_build_20201001',
+            versionCode: 1,
+            referred: false
+        }, {
+            appName: '阴阳师',
+            packageName: 'com.netease.onmyoji.mz',
+            versionName: '1.6.6',
+            versionCode: 103,
+            referred: true
+        }, {
+            appName: 'AutoJsPro',
+            packageName: 'org.autojs.autojspro',
+            versionName: 'Pro 8.7.4-0',
+            versionCode: 8070400,
+            referred: false
+        }];
+    },
+    getIconByPackageName: (packageName: string) => {
+        // TODO
+        return '';
+    },
+    saveToSetDefaultLaunchAppList: (packageNames: string[]) => {
+        // TODO
+        return { error: 0, message: 'success' };
+    }
 };
 
 export default MockMethod;
