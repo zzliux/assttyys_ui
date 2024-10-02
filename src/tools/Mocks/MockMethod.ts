@@ -4,9 +4,10 @@ import SchemeList from './initDatas/SchemeList';
 import ScheduleDefaultList from './initDatas/ScheduleList';
 import type { onConfirmOption } from '@/components/SchemeEditDialog';
 import { getNextByCron } from '../cron';
-import { mergeOffsetTime } from '../tools';
+import { deepClone, mergeOffsetTime } from '../tools';
 import SettingList from './initDatas/SettingList';
 import { storages } from './storages';
+import version, { versionList } from './initDatas/Version';
 
 if (localStorage.getItem('debug')) {
     // 1. 初始化schemeList
@@ -228,16 +229,10 @@ export const MockMethod: {
         return { error: 0, message: 'success' }
     },
     versionInfo: () => {
-        // TODO
         return {
-            storeVersion: '1.0.0',
-            versionList: [
-                {
-                    version: '1.0.0',
-                    desc: '初始版本'
-                }
-            ]
-        };
+            storeVersion: version,
+            versionList: deepClone(versionList)
+        }
     },
     setCurrentScheme: (params) => {
         // TODO

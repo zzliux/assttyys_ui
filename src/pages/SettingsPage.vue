@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import AppListRefDialog from '@/components/AppListRefDialog.vue';
 import Nav from '@/components/Nav.vue';
+import VersionDialog from '@/components/VersionDialog.vue';
 import { AutoWeb } from '@/tools/AutoWeb';
 import type { SettingItem } from '@/tools/declares';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { onMounted, ref } from 'vue';
 // TODO 1 关于项目
 // TODO 2 关联启动应用
@@ -10,6 +13,9 @@ import { onMounted, ref } from 'vue';
 
 
 const settingList = ref<SettingItem[]>();
+const appListRefDialogRef = ref<InstanceType<typeof AppListRefDialog>>();
+const versionDialogRef = ref<InstanceType<typeof VersionDialog>>();
+const appVersion = ref<string>('');
 
 onMounted(async () => {
     await loadData();
@@ -17,11 +23,34 @@ onMounted(async () => {
 
 const loadData = async () => {
     settingList.value = await AutoWeb.autoPromise('getSettings');
+    appVersion.value = (await AutoWeb.autoPromise('versionInfo')).storeVersion;
 }
 
 const itemChangeEvent = async (item: SettingItem) => {
     await AutoWeb.autoPromise('saveSetting', item);
+    ElMessage.success('保存成功');
     await loadData();
+}
+
+const globalResetEvent = async () => {
+    ElMessageBox.confirm(
+        '即将清空并重置所有数据，确认是否执行？',
+        '提示',
+        {
+            confirmButtonText: '确认',
+            cancelButtonText: '取消',
+            type: 'warning',
+        }
+    ).then(() => {
+        return AutoWeb.autoPromise('clearStorage');
+    }).catch(() => {
+        // 取消了
+        return;
+    });
+}
+
+const startActivityForLog = () => {
+    AutoWeb.autoPromise('startActivityForLog');
 }
 
 </script>
@@ -35,31 +64,33 @@ const itemChangeEvent = async (item: SettingItem) => {
                 <span class="item-header-right">
                     <el-switch size="small" v-if="item.stype === 'switch' || !item.stype" v-model="item.enabled"
                         @change="itemChangeEvent(item)" />
-                    <el-select v-else-if="item.stype === 'list'" v-model="item.value" :size="'small'">
-                        <el-option v-for="option in item.data" :key="option" :label="option" :value="option"
-                            @change="itemChangeEvent(item)" />
+                    <el-select v-else-if="item.stype === 'list'" v-model="item.value" :size="'small'"
+                        @change="itemChangeEvent(item)">
+                        <el-option v-for="option in item.data" :key="option" :label="option" :value="option" />
                     </el-select>
                     <el-input v-else-if="item.stype === 'text'" v-model="item.value" :size="'small'"
                         @blur="itemChangeEvent(item)" />
                 </span>
             </div>
         </div>
-        <div class="item-container" style="margin-top: 10px">
+        <VersionDialog ref="versionDialogRef" />
+        <div class="item-container" style="margin-top: 10px" @click.stop="versionDialogRef.open()">
             <div class="item-header">
-                <span class="item-header-text"><el-text size=small>关于项目</el-text></span>
+                <span class="item-header-text"><el-text size=small>版本：{{ appVersion }}</el-text></span>
             </div>
         </div>
-        <div class="item-container" style="margin-top: 10px">
+        <AppListRefDialog ref="appListRefDialogRef" />
+        <div class="item-container" style="margin-top: 10px" @click.stop="appListRefDialogRef.open()">
             <div class="item-header">
                 <span class="item-header-text"><el-text size=small>关联启动应用</el-text></span>
             </div>
         </div>
-        <div class="item-container">
+        <div class="item-container" @click="startActivityForLog">
             <div class="item-header">
                 <span class="item-header-text"><el-text size=small>查看日志</el-text></span>
             </div>
         </div>
-        <div class="item-container">
+        <div class="item-container" @click="globalResetEvent">
             <div class="item-header">
                 <span class="item-header-text"><el-text size=small>全局重置</el-text></span>
             </div>
@@ -86,11 +117,17 @@ const itemChangeEvent = async (item: SettingItem) => {
     justify-content: space-between;
     background-color: #fff;
     z-index: 1;
+    transition: all .2s ease-in-out;
     min-height: 35.6px;
 }
 
 .item-container {
     width: 100%;
+}
+
+.item-header:active,
+.item-container:active {
+    background-color: #ebeef5;
 }
 
 .item-header-text,

@@ -63,7 +63,7 @@ if (localStorage.getItem('debug')) {
             let result: any;
             result = MockMethod[key](param.params);
             console.log(`[autoweb::request:${key}]`, param.params);
-            console.log(`[autoweb::request:${key}]`, result);
+            console.log(`[autoweb::response:${key}]`, result);
             (window as any)[param.PROMPT_CALLBACK](result);
         }, Math.floor(Math.random() * 9999999) % 190 + 10); // 模拟异步延时
     };
