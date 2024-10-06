@@ -1,4 +1,5 @@
-import type { GroupSchemeName, Scheme } from "./declares";
+import { AutoWeb } from "./AutoWeb";
+import type { Func, FuncConfig, GroupSchemeName, Scheme } from "./declares";
 import groupColors from "./GroupColors";
 
 
@@ -157,7 +158,7 @@ export const mergeOffsetTime = function (date: Date, offsetStr: string) {
 // 将日期转换为yyyy-mm-dd hh:ii:ss格式
 export const toStdFormatDateStr = function (date: Date | string): string {
     if (!date) return;
-    
+
     const parsedDate = typeof date === 'string' ? new Date(date) : date;
 
     if (isNaN(parsedDate.getTime())) {
@@ -173,3 +174,79 @@ export const toStdFormatDateStr = function (date: Date | string): string {
 
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
+
+function getSingleDefaultConfig(func: Func) {
+    const ret: { [key: string]: string | number | boolean } = {};
+    if (func.config) {
+        for (let configGroup of func.config) {
+            for (let config of configGroup.config) {
+                ret[config.name] = config.default;
+            }
+        }
+    }
+    if (Object.keys(ret).length) {
+        return ret;
+    }
+    return null;
+}
+
+async function getCommonConfig() {
+    const defaultCommonConfig = await AutoWeb.autoPromise('getCommonConfig');
+    const ret: { [key: string]: string | number | boolean } = {};
+    for (let configGroup of defaultCommonConfig) {
+        for (let config of configGroup.config) {
+            ret[config.name] = config.default;
+        }
+    }
+    return ret;
+}
+
+export async function simplifySchemeList(schemeList: Scheme[]) {
+    const defaultFuncList = await AutoWeb.autoPromise('getFuncList');
+    const allDefaultConfig: { [key: string]: { [key: string]: string | number | boolean } } = {};
+    defaultFuncList.forEach(func => {
+        const v = getSingleDefaultConfig(func);
+        if (v) {
+            allDefaultConfig[func.id] = v;
+        }
+    });
+    const allDefaultCommonConfig = await getCommonConfig();
+    schemeList.forEach(expScheme => {
+        delete expScheme.id;
+        delete expScheme.inner;
+        delete expScheme.export;
+        // 删除默认功能配置
+        for (let funcId in expScheme.config) {
+            const defaultConfig = allDefaultConfig[funcId];
+            let flag = true;
+            for (let configKey in expScheme.config[funcId]) {
+                if (defaultConfig[configKey] == expScheme.config[funcId][configKey]) {
+                    delete expScheme.config[funcId][configKey];
+                } else {
+                    flag = false;
+                }
+            }
+            if (flag) {
+                delete expScheme.config[funcId]
+            }
+        }
+        if (expScheme.config && Object.keys(expScheme.config).length === 0) {
+            delete expScheme.config;
+        }
+
+        // 删除默认公共配置
+        let flag = true;
+        for (let commonConfigKey in expScheme.commonConfig) {
+            if (allDefaultCommonConfig[commonConfigKey] == expScheme.commonConfig[commonConfigKey]) {
+                delete expScheme.commonConfig[commonConfigKey];
+            } else {
+                flag = false;
+            }
+        }
+        if (flag) {
+            delete expScheme.commonConfig;
+        }
+
+    });
+    return schemeList;
+}

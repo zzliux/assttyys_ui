@@ -6,12 +6,13 @@ import { FixedCollapse, FixedCollapseItem } from '@/components/FixedCollapse';
 import type { GroupSchemeName, Scheme } from '@/tools/declares';
 import SchemeItemCard from '@/components/SchemeItemCard.vue';
 import globalEmmiter from '@/tools/GlobalEventBus';
-import { getGroupColor, groupedSchemeListToGroupSchemeNames, groupSchemeList } from '@/tools/tools';
-import { Plus, Sort, Star, StarFilled, More, View, Hide, Folder, FolderOpened } from '@element-plus/icons-vue'
+import { deepClone, getGroupColor, groupedSchemeListToGroupSchemeNames, groupSchemeList, simplifySchemeList } from '@/tools/tools';
+import { Plus, Sort, Star, StarFilled, More, Expand, Fold, View, Hide, Folder, FolderOpened } from '@element-plus/icons-vue'
 import SchemeEditDialog from '@/components/SchemeEditDialog/SchemeEditDialog.vue';
 import { ElMessage } from 'element-plus';
 import type { onConfirmOption } from '@/components/SchemeEditDialog';
 import draggable from '@marshallswain/vuedraggable';
+import ImportSchemeDialog from '@/components/ImportSchemeDialog.vue';
 
 
 const config = ref<{
@@ -37,14 +38,10 @@ watch(collapseVal, (newVal) => {
 const schemeList = ref<Scheme[]>([]);
 const groupSchemeNames = ref<GroupSchemeName[]>([]);
 const groupedSchemeList = ref<Record<string, Scheme[]>>({});
-// watch(groupSchemeNames, (newVal) => {
-//     console.log('[groupSchemeNames] changed', newVal);
-//     groupedSchemeList.value = groupSchemeList(newVal, schemeList.value);
-// }, { deep: true });
-// watch(schemeList, (newVal) => {
-//     console.log('[schemeList] changed', newVal);
-//     groupedSchemeList.value = groupSchemeList(groupSchemeNames.value, newVal);
-// }, { deep: true });
+const exportMode = ref<boolean>(false);
+const exportDialogStr = ref<string>('');
+const exportDialogShown = ref<boolean>(false);
+const importDialogShown = ref<boolean>(false);
 
 async function loadData() {
     // schemeList.value = await AutoWeb.autoPromise('getSchemeList');
@@ -56,11 +53,6 @@ async function loadData() {
     schemeList.value = result[0];
     groupSchemeNames.value = result[1];
     groupedSchemeList.value = groupSchemeList(groupSchemeNames.value, schemeList.value);
-}
-
-function schemeItemClick() {
-    // TODO 跳转进入该方案的功能配置页
-    console.log('schemeItemClick');
 }
 
 const newScheme = ref<Scheme>();
@@ -83,11 +75,7 @@ const addSchemeConfirmEvent = async (option: onConfirmOption) => {
         newScheme, type
     });
     if (saveResult.error) {
-        ElMessage({
-            type: 'error',
-            message: saveResult.message,
-            plain: true,
-        })
+        ElMessage.error(saveResult.message);
         return false;
     }
     loadData();
@@ -135,7 +123,7 @@ const showHideGroup = async (e: MouseEvent, groupNameStr: string, hidden: boolea
 
 onMounted(async () => {
     await loadData();
-    if (typeof config.value.currentCollapseVal === undefined) {
+    if (typeof config.value.currentCollapseVal === 'undefined') {
         collapseVal.value = groupSchemeNames.value[0].groupName;
     } else {
         collapseVal.value = config.value.currentCollapseVal;
@@ -150,12 +138,43 @@ onUnmounted(() => {
     globalEmmiter.off('Event.SchemeItemCard.Operation')
 });
 
+const switchExportMode = () => {
+    exportMode.value = !exportMode.value;
+    if (exportMode.value) {
+        ElMessage.info('选择需要导出的方案后点击下方导出按钮进行导出。')
+    }
+}
+
+const exportBtnEvent = async () => {
+    const toExportMap: Record<string, Scheme> = {};
+    Object.keys(groupedSchemeList.value).forEach(groupName => {
+        groupedSchemeList.value[groupName].forEach(scheme => {
+            if (scheme.export) {
+                toExportMap[scheme.schemeName] = scheme;
+            }
+        });
+    });
+    const toExport = Object.keys(toExportMap).map(schemeName => toExportMap[schemeName]);
+    exportDialogStr.value = JSON.stringify(await simplifySchemeList(deepClone(toExport)));
+    exportDialogShown.value = true;
+}
+
 
 </script>
 
 <template>
     <Nav name="方案管理">
         <template #extra>
+            <el-button link @click="switchExportMode">
+                <el-icon>
+                    <Expand />
+                </el-icon>
+            </el-button>
+            <el-button link @click="importDialogShown = true">
+                <el-icon>
+                    <Fold />
+                </el-icon>
+            </el-button>
             <span style="margin-right: 10px">
                 <el-popover placement="bottom" trigger="click">
                     <template #reference>
@@ -164,9 +183,11 @@ onUnmounted(() => {
                             </el-icon></el-button>
                     </template>
                     <template #default>
-                        <el-checkbox v-model="config.showHiddenGroup" label="显示隐藏的分组" size="small" />
-                        <el-checkbox v-model="config.hiddenUnStar" label="隐藏未收藏的方案" size="small" />
-                        <el-checkbox v-model="config.collapseAccordion" label="手风琴模式" size="small" />
+                        <el-checkbox v-model="config.showHiddenGroup" label="显示隐藏的分组" size="small"
+                            style="width: 100%" />
+                        <el-checkbox v-model="config.hiddenUnStar" label="隐藏未收藏的方案" size="small" style="width: 100%" />
+                        <el-checkbox v-model="config.collapseAccordion" label="手风琴模式" size="small"
+                            style="width: 100%" />
                     </template>
                 </el-popover>
             </span>
@@ -211,9 +232,10 @@ onUnmounted(() => {
                                 <template #item="{ element: scheme, index }">
                                     <div class="drag-item-card-scheme"
                                         v-if="!config.hiddenUnStar || (config.hiddenUnStar && scheme.star)">
-                                        <SchemeItemCard :scheme="scheme" :group-name="groupSchemeName.groupName">
+                                        <SchemeItemCard :show-check-box="exportMode" :scheme="scheme"
+                                            :group-name="groupSchemeName.groupName">
                                             <template #operation-left>
-                                                <el-text size="small" @click="starBtnEvent(scheme)"
+                                                <el-text size="small" @click.stop="starBtnEvent(scheme)"
                                                     style="margin-right: 10px;">
                                                     <el-icon>
                                                         <!-- 默认的实心五星图标比空心小一圈，让它俩叠加以达到视觉大小一致 -->
@@ -251,6 +273,16 @@ onUnmounted(() => {
         </FixedCollapse>
         <SchemeEditDialog v-if="newSchemeEditDialogShown" v-model="newSchemeEditDialogShown" :scheme="newScheme"
             @confirm="addSchemeConfirmEvent" type="add" />
+        <div v-if="exportMode" style="position: fixed; right: 10px; bottom: 10px; z-index: 1;">
+            <el-button type="primary" @click="exportBtnEvent" size="small">导出</el-button>
+        </div>
+        <el-dialog v-model="exportDialogShown" align-center width="70%">
+            <el-input @focus="($event: FocusEvent) => ($event.currentTarget as HTMLInputElement).select()"
+                style="height: 50vh" size="small" type="textarea" v-model="exportDialogStr" />
+            <el-button type="primary" size="small" style="position: absolute; right: 0; bottom: 0;"
+                @click="AutoWeb.autoPromise('copyToClip', exportDialogStr)">复制</el-button>
+        </el-dialog>
+        <ImportSchemeDialog v-model="importDialogShown" />
     </div>
 </template>
 
@@ -314,5 +346,14 @@ onUnmounted(() => {
 
 .drag-group-handle {
     margin-right: 10px;
+}
+</style>
+<style>
+.container .el-textarea__inner {
+    height: 100%;
+}
+
+.el-button+.el-button {
+    margin-left: 0px
 }
 </style>

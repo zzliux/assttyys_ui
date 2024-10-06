@@ -6,10 +6,6 @@ import { AutoWeb } from '@/tools/AutoWeb';
 import type { SettingItem } from '@/tools/declares';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { onMounted, ref } from 'vue';
-// TODO 1 关于项目
-// TODO 2 关联启动应用
-// TODO 3 查看日志
-// TODO 4 全局重置
 
 
 const settingList = ref<SettingItem[]>();
@@ -19,11 +15,11 @@ const appVersion = ref<string>('');
 
 onMounted(async () => {
     await loadData();
-})
+    appVersion.value = (await AutoWeb.autoPromise('versionInfo')).storeVersion;
+});
 
 const loadData = async () => {
     settingList.value = await AutoWeb.autoPromise('getSettings');
-    appVersion.value = (await AutoWeb.autoPromise('versionInfo')).storeVersion;
 }
 
 const itemChangeEvent = async (item: SettingItem) => {
@@ -73,16 +69,16 @@ const startActivityForLog = () => {
                 </span>
             </div>
         </div>
-        <VersionDialog ref="versionDialogRef" />
-        <div class="item-container" style="margin-top: 10px" @click.stop="versionDialogRef.open()">
-            <div class="item-header">
-                <span class="item-header-text"><el-text size=small>版本：{{ appVersion }}</el-text></span>
-            </div>
-        </div>
         <AppListRefDialog ref="appListRefDialogRef" />
         <div class="item-container" style="margin-top: 10px" @click.stop="appListRefDialogRef.open()">
             <div class="item-header">
                 <span class="item-header-text"><el-text size=small>关联启动应用</el-text></span>
+            </div>
+        </div>
+        <VersionDialog ref="versionDialogRef" />
+        <div class="item-container"  @click.stop="versionDialogRef.open()">
+            <div class="item-header">
+                <span class="item-header-text"><el-text size=small>版本：{{ appVersion }}</el-text></span>
             </div>
         </div>
         <div class="item-container" @click="startActivityForLog">

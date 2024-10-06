@@ -1,4 +1,6 @@
-const CommonConfig = [{
+import type { CommonConfigItem } from "@/tools/declares";
+
+const CommonConfig: CommonConfigItem[] = [{
 	desc: '通用配置',
 	config: [
 		{

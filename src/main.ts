@@ -14,5 +14,6 @@ app.use(ElementPlus, {
     locale: zhCn,
 });
 app.use(router);
+app.config.performance = true;
 
 app.mount('#app');

@@ -1,5 +1,19 @@
+<script lang="ts" setup>
+import type { PropType } from 'vue';
+
+
+const $props = defineProps({
+    onClick: {
+        default: () => { },
+        type: Function as PropType<(event: MouseEvent) => void>,
+    },
+});
+
+
+</script>
+
 <template>
-    <div class="item-card-item">
+    <div class="item-card-item" @click="$props.onClick">
         <slot name="default"></slot>
     </div>
 </template>
@@ -17,6 +31,7 @@
     width: 100%;
     background-color: #fff;
 }
+
 .item-card-item:active {
     background-color: aliceblue;
 }

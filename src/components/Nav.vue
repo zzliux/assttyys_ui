@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ArrowDown } from '@element-plus/icons-vue';
-import { onMounted, ref } from 'vue';
 import { routesDefine } from '../pages/router';
 
 const $props = defineProps({
@@ -13,7 +12,7 @@ const $props = defineProps({
     <div style="height: 46px; padding-top: 3px; padding-left: 10px">
         <el-page-header :icon="null">
             <template #title>
-                <el-text>ASSTTYYS</el-text>
+                <el-text @click="$router.push('/SchemeManagementPage')">ASSTTYYS</el-text>
             </template>
             <template #content>
                 <!-- <el-text>{{ $props.name }}</el-text> -->

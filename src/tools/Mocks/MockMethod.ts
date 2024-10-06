@@ -8,6 +8,8 @@ import { deepClone, mergeOffsetTime } from '../tools';
 import SettingList from './initDatas/SettingList';
 import { storages } from './storages';
 import version, { versionList } from './initDatas/Version';
+import FuncList from './initDatas/FuncList';
+import CommonConfig from './initDatas/CommonConfig';
 
 if (localStorage.getItem('debug')) {
     // 1. 初始化schemeList
@@ -329,7 +331,19 @@ export const MockMethod: {
     saveToSetDefaultLaunchAppList: (packageNames: string[]) => {
         // TODO
         return { error: 0, message: 'success' };
-    }
+    },
+    getFuncList: () => {
+        return deepClone(FuncList);
+    },
+    getCommonConfig: () => {
+        return deepClone(CommonConfig);
+    },
+    copyToClip: (str) => {
+        // TODO
+    },
+    getClip: () => {
+        return ''
+    },
 };
 
 export default MockMethod;

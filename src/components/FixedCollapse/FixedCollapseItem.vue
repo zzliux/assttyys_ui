@@ -30,6 +30,16 @@ const $parentProps = inject<{ multipart: boolean, modelValue: string }>('fixedCo
 const $parentContainerDom = inject<Ref<HTMLDivElement, HTMLDivElement>>('fixedCollapse.containerRef');
 const $parentModel = inject<ModelRef<string>>('fixedCollapse.instanceModel');
 const isOpen = ref(false);
+const isOpenDelay = ref(false); // 该参数用户控制content部分延迟清空渲染用
+watch(() => isOpen.value, (val) => {
+    // 已经渲染过的再次打开不需要渲染了
+    if (val) {
+        isOpenDelay.value = val;
+    }
+    // setTimeout(() => {
+    //     isOpenDelay.value = val;
+    // }, 200)
+});
 
 let allNames: string[] = [];
 // 直接监听爸爸的模型值
@@ -66,28 +76,41 @@ const modelChangeEvent = (val: string) => {
         isOpen.value = (allNames.includes($props.name));
     }
     if (isOpen.value) {
-        // const parentHeight = parentContainerDom.value.getBoundingClientRect().height;
-        // const singleHeight = singleDoms.value[0].getBoundingClientRect().height;
-        // const singleCounts = singleDoms.value.length;
-        // const height1 = parentHeight - singleHeight * Math.min(singleCounts, 2);
-        const height2 = contentInnerDomRef.value.getBoundingClientRect().height;
-        // const height = Math.min(height1, height2);
+        nextTick(() => {
 
-        contentDomRef.value.style.height = `${height2}px`;
-        isOpen.value = true;
+            // const parentHeight = parentContainerDom.value.getBoundingClientRect().height;
+            // const singleHeight = singleDoms.value[0].getBoundingClientRect().height;
+            // const singleCounts = singleDoms.value.length;
+            // const height1 = parentHeight - singleHeight * Math.min(singleCounts, 2);
+            const height2 = contentInnerDomRef.value.getBoundingClientRect().height;
+            // const height = Math.min(height1, height2);
+
+            contentDomRef.value.style.height = `${height2 <= 4 ? 0 : height2}px`;
+            isOpen.value = true;
+
+            // 关闭一个特高的，再打开一个矮的时候，当前item滚动直接超出父容器时，修复滚动位置
+            setTimeout(() => {
+                if (fixedCollapseItemHeaderRef.value.offsetTop < $parentContainerDom.value.scrollTop) {
+                    $parentContainerDom.value.scrollTo({
+                        top: fixedCollapseItemHeaderRef.value.offsetTop,
+                        behavior: 'smooth'
+                    });
+                }
+            }, 200);
+        });
     } else {
         contentDomRef.value.style.height = `0px`;
         isOpen.value = false;
-        
+
         fixedCollapseItemHeaderRef.value.style.top = 'initial';
     }
 }
-
 </script>
 
 <template>
     <div class="fixedCollapseItem-container">
-        <div ref="fixedCollapseItemHeaderRef" :class="`fixedCollapseItem-header ${isOpen ? 'open' : ''}`" @click="toggleItem">
+        <div ref="fixedCollapseItemHeaderRef" :class="`fixedCollapseItem-header ${isOpen ? 'open' : ''}`"
+            @click="toggleItem">
             <div class="fixedCollapseItem-header-text">
                 <div class="fixedCollapseItem-header-prevColorBox" :style="{ backgroundColor: $props.prevColor }"></div>
                 <el-text v-if="$props.headerIconActive || $props.headerIcon" size="small" style="margin-right: 5px">
@@ -108,7 +131,7 @@ const modelChangeEvent = (val: string) => {
             </div>
         </div>
         <div class="fixedCollapseItem-content" ref="contentDomRef">
-            <div class="fixedCollapseItem-contentInner" ref="contentInnerDomRef">
+            <div v-if="isOpen || isOpenDelay" class="fixedCollapseItem-contentInner" ref="contentInnerDomRef">
                 <slot name="content"></slot>
             </div>
         </div>

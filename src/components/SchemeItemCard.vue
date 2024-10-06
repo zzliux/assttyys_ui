@@ -8,10 +8,12 @@ import { ref } from 'vue';
 import SchemeEditDialog, { type onConfirmOption } from './SchemeEditDialog';
 import { ElMessage } from 'element-plus'
 import { deepClone } from '@/tools/tools';
+import router from '@/pages/router';
 
 const $props = defineProps<{
     scheme: Scheme,
     groupName: string,
+    showCheckBox: boolean,
 }>();
 
 // 置顶
@@ -54,11 +56,7 @@ const editDialogSaveEvent = async (option: onConfirmOption) => {
         oldScheme, newScheme, type
     });
     if (saveResult.error) {
-        ElMessage({
-            type: 'error',
-            message: saveResult.message,
-            plain: true,
-        })
+        ElMessage.error(saveResult.message);
         return false;
     }
     globalEmmiter.emit('Event.SchemeItemCard.Operation', {
@@ -90,11 +88,25 @@ const deleteConfirmBtnEvent = async () => {
         targetScheme: $props.scheme,
     });
 }
+
+const schemeItemClickEvent = () => {
+    if ($props.showCheckBox) {
+        $props.scheme.export = !$props.scheme.export;
+        return;
+    }
+    router.push({
+        path: '/FunctionManagementPage',
+        query: {
+            schemeName: $props.scheme.schemeName
+        }
+    });
+}
 </script>
 
 <template>
-    <ItemCard>
+    <ItemCard @click="schemeItemClickEvent">
         <div class="item-title">
+            <el-checkbox @click.stop v-if="$props.showCheckBox" v-model="$props.scheme.export" size="small" style="margin-right: 5px"></el-checkbox>
             <el-text size="small">{{ $props.scheme.schemeName }}</el-text>
         </div>
         <div class="item-operation">
@@ -102,7 +114,7 @@ const deleteConfirmBtnEvent = async () => {
             <el-popover placement="left" :width="55" :hide-after="0" :auto-close="2000" trigger="click"
                 popper-class="scheme-item-operation">
                 <template #reference>
-                    <el-button size="small" link>
+                    <el-button size="small" link @click.stop>
                         <el-icon>
                             <Operation />
                         </el-icon>
@@ -128,6 +140,7 @@ const deleteConfirmBtnEvent = async () => {
 </template>
 
 <style scoped>
+.item-checkbox,
 .item-title,
 .item-operation {
     display: flex;
@@ -137,5 +150,8 @@ const deleteConfirmBtnEvent = async () => {
 <style>
 .el-popover.el-popper.scheme-item-operation {
     min-width: initial;
+}
+.item-title .el-checkbox {
+    height: initial;
 }
 </style>

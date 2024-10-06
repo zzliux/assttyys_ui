@@ -8,7 +8,7 @@ export type FuncConfig = {
         type: 'switch' | 'integer' | 'text' | 'scheme' | 'list' | 'number',
         data?: string[],
         default: boolean | string | number,
-        value?: boolean | string | number,
+        value?: boolean | string | number
     }[]
 }
 
@@ -18,6 +18,10 @@ export type Func = {
     desc?: string,
     config?: FuncConfig[],
 }
+
+export type FuncView = {
+    enabled: boolean,
+} & Func;
 
 export type Result = { error: number, message: string }
 
@@ -40,6 +44,18 @@ export type Scheme = {
     commonConfig?: {
         [key: string]: string | boolean | number
     };
+    export?: boolean
+}
+
+export type CommonConfigItem = {
+    desc: string,
+    config: {
+        name: string,
+        desc: string,
+        type: 'integer',
+        default: number,
+        value?: number
+    }[]
 }
 
 export type GroupSchemeName = {
@@ -176,15 +192,15 @@ export type AutoWebTypes = {
     // 偷个懒，schedule直接全部保存
     saveScheduleList: {
         param: JobOptions[],
-        result: Result,
+        result: Result
     },
     scheduleChange: {
         param: JobOptions,
-        result: void,
+        result: void
     },
     setScheduleLazyMode: {
         param: boolean,
-        result: void,
+        result: void
     },
     getScheduleLazyMode: {
         param: void,
@@ -200,15 +216,15 @@ export type AutoWebTypes = {
     },
     startActivityForLog: {
         param: void,
-        result: void,
+        result: void
     },
     clearStorage: {
         param: void,
-        result: void,
+        result: void
     },
     getToSetDefaultLaunchAppList: {
         param: void,
-        result: PackageInfo[],
+        result: PackageInfo[]
     },
     getIconByPackageName: {
         param: string, // package_name
@@ -216,6 +232,22 @@ export type AutoWebTypes = {
     },
     saveToSetDefaultLaunchAppList: {
         param: string[],
-        result: Result,
+        result: Result
+    },
+    getFuncList: {
+        param: void,
+        result: Func[]
+    },
+    getCommonConfig: {
+        param: void,
+        result: CommonConfigItem[]
+    },
+    copyToClip: {
+        param: string,
+        result: void
+    },
+    getClip: {
+        param: void,
+        result: string
     },
 }
