@@ -250,4 +250,12 @@ export type AutoWebTypes = {
         param: void,
         result: string
     },
+    webloaded: {
+        param: void,
+        result: void
+    },
+    exit: {
+        param: void,
+        result: void
+    },
 }

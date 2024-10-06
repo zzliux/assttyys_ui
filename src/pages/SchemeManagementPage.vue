@@ -353,7 +353,7 @@ const exportBtnEvent = async () => {
     height: 100%;
 }
 
-.el-button+.el-button {
+.el-page-header__extra .el-button+.el-button {
     margin-left: 0px
 }
 </style>

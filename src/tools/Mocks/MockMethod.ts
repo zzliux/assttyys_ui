@@ -159,8 +159,8 @@ export const MockMethod: {
         return 20;
     },
     getScheme: (schemeName) => {
-        const schemeList = store.get('schemeList');
-        return schemeList.find((scheme: Scheme) => scheme.schemeName === schemeName);
+        const schemeList: Scheme[] = store.get('schemeList');
+        return schemeList.find(scheme => scheme.schemeName === schemeName);
     },
     getGroupSchemeNames: () => {
         return store.get('groupSchemeNames');
@@ -344,6 +344,8 @@ export const MockMethod: {
     getClip: () => {
         return ''
     },
+    webloaded: () => {},
+    exit: () => {}
 };
 
 export default MockMethod;

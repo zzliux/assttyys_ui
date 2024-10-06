@@ -7,6 +7,7 @@ import 'element-plus/dist/index.css';
 
 import App from './App.vue';
 import router from './pages/router';
+import { AutoWeb } from './tools/AutoWeb';
 
 const app = createApp(App);
 
@@ -17,3 +18,25 @@ app.use(router);
 app.config.performance = true;
 
 app.mount('#app');
+
+declare global {
+    interface Window {
+        routeBack: () => void;
+        routeBackFlag: boolean;
+    }
+}
+window.routeBack = function () {
+    if (window.history.state.back) {
+        router.back();
+    } else {
+        if (window.routeBackFlag) {
+            AutoWeb.autoPromise('exit');
+        } else {
+            window.routeBackFlag = true;
+            AutoWeb.autoPromise('toast', '再按一次退出程序');
+            setTimeout(() => {
+                window.routeBackFlag = false;
+            }, 1500)
+        }
+    }
+}

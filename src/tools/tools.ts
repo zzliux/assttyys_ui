@@ -22,7 +22,9 @@ export const groupSchemeList = (groupSchemeNames: GroupSchemeName[], schemeList:
             ret[groupSchemeName.groupName] = [];
         }
         for (let schemeName of groupSchemeName.schemeNames) {
-            ret[groupSchemeName.groupName].push(schemeListMap[schemeName]);
+            if (schemeListMap[schemeName]) {
+                ret[groupSchemeName.groupName].push(schemeListMap[schemeName]);
+            }
         }
     }
     return ret;
