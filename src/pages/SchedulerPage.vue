@@ -223,8 +223,7 @@ const lazyModeBtnClickEvent = async () => {
                             <el-text
                                 :type="`${Date.now() - new Date(item.nextDate).getTime() > 3 * 60 * 1000 ? 'danger' : ''}`"
                                 size="small" style="margin-bottom: 5px; font-weight: bold;">
-                                {{ item.id }} {{
-                                    item.name }}
+                                {{ item.id }} {{ item.name }}
                             </el-text>
                         </div>
                         <div><el-text size="small" type="info">{{ item.desc }}</el-text></div>
@@ -303,7 +302,7 @@ const lazyModeBtnClickEvent = async () => {
                         <el-form-item label="下次执行时间" size=small>
                             <el-date-picker popper-class="date-time-picker-panel" v-model="item.nextDate"
                                 :editable="false" type="datetime" placeholder="选择日期时间" :clearable="false"
-                                @focus="maskShown = true" />
+                                @visible-change="(visibility: boolean) => maskShown = visibility" />
                         </el-form-item>
                         <el-form-item label="优先级" size=small>
                             <el-input v-model="item.level" type="number" />

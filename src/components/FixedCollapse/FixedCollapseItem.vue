@@ -43,7 +43,8 @@ watch(() => isOpen.value, (val) => {
 
 let allNames: string[] = [];
 // 直接监听爸爸的模型值
-watch(() => $parentModel.value, (val) => {
+watch(() => $parentModel.value, (val, oldVal) => {
+    if (val === oldVal) return;
     modelChangeEvent(val);
 });
 
