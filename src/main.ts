@@ -23,6 +23,7 @@ declare global {
     interface Window {
         routeBack: () => void;
         routeBackFlag: boolean;
+        loadScheduleData: Function;
     }
 }
 window.routeBack = function () {

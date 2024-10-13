@@ -2,7 +2,7 @@
 import Nav from '@/components/Nav.vue';
 import { AutoWeb } from '@/tools/AutoWeb';
 import type { GroupSchemeName, JobOptions } from '@/tools/declares';
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { More, Plus, Operation, Refresh } from '@element-plus/icons-vue';
 import FixedCollapse from '@/components/FixedCollapse/FixedCollapse.vue';
 import FixedCollapseItem from '@/components/FixedCollapse/FixedCollapseItem.vue';
@@ -34,7 +34,13 @@ onMounted(async () => {
     groupSchemeNames.value = await AutoWeb.autoPromise('getGroupSchemeNames');
 
     lazyMode.value = await AutoWeb.autoPromise('getScheduleLazyMode');
+
+    window.loadScheduleData = loadData;
 });
+
+onUnmounted(() => {
+    delete window.loadScheduleData;
+})
 
 const loadData = async () => {
     const list = await AutoWeb.autoPromise('getScheduleList');
