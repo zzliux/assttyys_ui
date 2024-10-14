@@ -13,10 +13,7 @@ jobs:
         with:
           node-version: 18
           cache: npm
-      
-      - name: Clone Main Repository
-        run: git clone https://github.com/zzliux/assttyys_autojs.git -b ui_refactor
-      
+
       - name: Install Dependencies
         run: npm install
 
