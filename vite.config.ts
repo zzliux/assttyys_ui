@@ -19,7 +19,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: 'assttyys_autojs/src' // 修改打包路径
+    outDir: 'dist' // 修改打包路径
   },
   server: {
     proxy: {
