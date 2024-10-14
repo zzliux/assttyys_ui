@@ -175,7 +175,7 @@ const operationBoxHide = () => {
 }
 
 .operation-box {
-    transition: width 200ms linear;
+    transition: width 200ms ease-in-out;
     position: absolute;
     top: -6px;
     right: 0;
@@ -184,7 +184,7 @@ const operationBoxHide = () => {
     overflow: hidden;
     text-wrap: nowrap;
     line-height: 31px;
-    height: 35px;
+    height: 34px;
     text-align: right;
 }
 
