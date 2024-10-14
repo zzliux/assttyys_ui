@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
-    "build2": "set VITE_BUILD_OUT_DIR=./assttyys_autojs/src && run-p type-check \"build-only {@}\" --"
+    "build2": "set VITE_BUILD_OUT_DIR=./dist && run-p type-check \"build-only {@}\" --"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
