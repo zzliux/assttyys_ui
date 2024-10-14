@@ -18,7 +18,7 @@ jobs:
         run: npm install
 
       - name: Pack
-        run: npm run build2
+        run: npm run build
 
       - name: Push to Main Repository
         uses: cpina/github-action-push-to-another-repository@main
