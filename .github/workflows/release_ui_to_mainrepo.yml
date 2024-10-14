@@ -13,7 +13,10 @@ jobs:
         with:
           node-version: 18
           cache: npm
-
+      
+      - name: Clone Main Repository
+        run: git clone https://github.com/zzliux/assttyys_autojs.git -b ui_refactor
+      
       - name: Install Dependencies
         run: npm install
 
@@ -25,7 +28,7 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
-          source-directory: 'dist'
+          source-directory: 'assttyys_autojs/src'
           target-directory: 'src'
           destination-github-username: 'zzliux'
           destination-repository-name: 'assttyys_autojs'
