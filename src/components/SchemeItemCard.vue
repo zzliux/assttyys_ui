@@ -69,7 +69,7 @@ const editDialogSaveEvent = async (option: onConfirmOption) => {
 
 // 删除，删除有点特别，仅删除分组与方案的关联，不删除方案，直到这个方案只有一个分组为止
 const deleteConfirmBtnEvent = async () => {
-    if (($props.scheme.groupNames?.length === 1 && $props.scheme.groupNames[0] === $props.groupName) || $props.scheme.groupNames?.length === 0) {
+    if (($props.scheme.groupNames?.length === 1 && $props.scheme.groupNames[0] === $props.groupName) || !$props.scheme.groupNames?.length) {
         await AutoWeb.autoPromise('removeScheme', $props.scheme);
     } else {
         // const groupSchemeNames = await AutoWeb.autoPromise('getGroupSchemeNames');

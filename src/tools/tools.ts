@@ -252,3 +252,38 @@ export async function simplifySchemeList(schemeList: Scheme[]) {
     });
     return schemeList;
 }
+
+
+export function bueatifyTime(date: Date | string): string {
+    if (!date) return;
+    const parsedDate = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(parsedDate.getTime())) {
+        throw new Error('Invalid date');
+    }
+
+    const ms: number = parsedDate.getTime() - new Date().getTime();
+    const absMs = Math.abs(ms);
+    const d = Math.floor(absMs / 1000 / 60 / 60 / 24);
+    const h = Math.floor((absMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const m = Math.floor((absMs % (1000 * 60 * 60)) / (1000 * 60));
+    const s = Math.floor((absMs % (1000 * 60)) / 1000);
+    
+    let str = '';
+    if (d) str += `${d}天`;
+    if (h) str += `${h}时`;
+    if (m) str += `${m}分`;
+    if (!str || s) str += `${s}秒`;
+    if (ms < 0) {
+        str = str + '前';
+    } else {
+        str = str + '后';
+    }
+    // if (ms < -180000) {
+    //     str = '已错过' + str;
+    // } else if (ms < 0) {
+    //     str = '即将执行';
+    // } else {
+    //     str = '将于' + str + '后执行';
+    // }
+    return str;
+}

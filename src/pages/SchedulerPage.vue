@@ -7,7 +7,7 @@ import { More, Plus, Operation, Refresh } from '@element-plus/icons-vue';
 import FixedCollapse from '@/components/FixedCollapse/FixedCollapse.vue';
 import FixedCollapseItem from '@/components/FixedCollapse/FixedCollapseItem.vue';
 import { getNextByCron } from '@/tools/cron';
-import { mergeOffsetTime, toStdFormatDateStr } from '@/tools/tools';
+import { bueatifyTime, mergeOffsetTime, toStdFormatDateStr } from '@/tools/tools';
 import { ElMessage } from 'element-plus';
 import ScheduleJobEditDialog, { type editType, type onConfirmOption } from '@/components/ScheduleJobEditDialog';
 
@@ -237,7 +237,7 @@ const lazyModeBtnClickEvent = async () => {
                                 }}</el-text></div>
                         <div><el-text size="small" type="info">上次执行结束时间：{{ toStdFormatDateStr(item.lastStopTime)
                                 }}</el-text></div>
-                        <div><el-text size="small" type="info">下次执行时间：{{ toStdFormatDateStr(item.nextDate) }}</el-text>
+                        <div><el-text size="small" type="info">下次执行时间：{{ toStdFormatDateStr(item.nextDate) }}({{ bueatifyTime(item.nextDate) }})</el-text>
                         </div>
                     </div>
                 </template>
