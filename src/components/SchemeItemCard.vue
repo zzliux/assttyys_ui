@@ -139,11 +139,6 @@ const operationBoxHide = () => {
                     </el-icon>
                 </el-button>
                 <div v-if="operationBoxShown" class="operation-box" ref="operationBoxRef">
-                    <el-button size="small" link @click.stop="operationBoxHide">
-                        <el-icon>
-                            <Operation />
-                        </el-icon>
-                    </el-button>
                     <el-button link size="small" type="primary" @click.stop="toTop">置顶</el-button>
                     <el-button link size="small" type="success" @click.stop="copyBtnEvent">复制</el-button>
                     <el-button link size="small" type="warning" @click.stop="modifyBtnEvent">修改</el-button>
@@ -153,6 +148,11 @@ const operationBoxHide = () => {
                             <el-button link size="small" type="danger" @click.stop>删除</el-button>
                         </template>
                     </el-popconfirm>
+                    <el-button size="small" link @click.stop="operationBoxHide">
+                        <el-icon>
+                            <Operation />
+                        </el-icon>
+                    </el-button>
                 </div>
             </div>
 
@@ -183,8 +183,9 @@ const operationBoxHide = () => {
     background-color: #fff;
     overflow: hidden;
     text-wrap: nowrap;
-    line-height: 32px;
+    line-height: 31px;
     height: 35px;
+    text-align: right;
 }
 
 .mask {
