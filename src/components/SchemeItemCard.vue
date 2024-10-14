@@ -32,6 +32,7 @@ const toTop = async () => {
         targetScheme: $props.scheme,
         groupSchemeNames: groupSchemeNames,
     });
+    operationBoxHide();
 }
 
 
@@ -48,6 +49,7 @@ const copyBtnEvent = async () => {
 const modifyBtnEvent = async () => {
     schemeEditType.value = 'modify';
     schemeEidtDialogVisiable.value = true;
+    operationBoxHide();
 }
 
 const editDialogSaveEvent = async (option: onConfirmOption) => {
@@ -87,6 +89,7 @@ const deleteConfirmBtnEvent = async () => {
         type: 'remove',
         targetScheme: $props.scheme,
     });
+    operationBoxHide();
 }
 
 const schemeItemClickEvent = () => {
@@ -101,37 +104,58 @@ const schemeItemClickEvent = () => {
         }
     });
 }
+
+const operationBoxShown = ref<boolean>(false);
+const operationBoxRef = ref<HTMLDivElement>();
+const operationBoxShow = () => {
+    operationBoxShown.value = true;
+    setTimeout(() => {
+        operationBoxRef.value.style.width = '140px';
+    }, 0)
+}
+
+const operationBoxHide = () => {
+    operationBoxRef.value.style.width = '0px';
+    setTimeout(() => {
+        operationBoxShown.value = false;
+    }, 200)
+}
+
 </script>
 
 <template>
     <ItemCard @click="schemeItemClickEvent">
         <div class="item-title">
-            <el-checkbox @click.stop v-if="$props.showCheckBox" v-model="$props.scheme.export" size="small" style="margin-right: 5px"></el-checkbox>
+            <el-checkbox @click.stop v-if="$props.showCheckBox" v-model="$props.scheme.export" size="small"
+                style="margin-right: 5px"></el-checkbox>
             <el-text size="small">{{ $props.scheme?.schemeName }}</el-text>
         </div>
         <div class="item-operation">
             <slot name="operation-left"></slot>
-            <el-popover placement="left" :width="55" :hide-after="0" :auto-close="2000" trigger="click"
-                popper-class="scheme-item-operation">
-                <template #reference>
-                    <el-button size="small" link @click.stop>
+            <div style="position: relative;">
+                <el-button size="small" link @click.stop="operationBoxShow">
+                    <el-icon>
+                        <Operation />
+                    </el-icon>
+                </el-button>
+                <div v-if="operationBoxShown" class="operation-box" ref="operationBoxRef">
+                    <el-button size="small" link @click.stop="operationBoxHide">
                         <el-icon>
                             <Operation />
                         </el-icon>
                     </el-button>
-                </template>
-                <template #default>
-                    <el-button link size="small" type="primary" @click="toTop">置顶</el-button><br />
-                    <el-button link size="small" type="success" @click="copyBtnEvent">复制</el-button><br />
-                    <el-button link size="small" type="warning" @click="modifyBtnEvent">修改</el-button><br />
+                    <el-button link size="small" type="primary" @click.stop="toTop">置顶</el-button>
+                    <el-button link size="small" type="success" @click.stop="copyBtnEvent">复制</el-button>
+                    <el-button link size="small" type="warning" @click.stop="modifyBtnEvent">修改</el-button>
                     <el-popconfirm title="确认是否删除" @confirm="deleteConfirmBtnEvent" confirm-button-text="确认"
                         cancel-button-text="取消">
                         <template #reference>
-                            <el-button link size="small" type="danger">删除</el-button>
+                            <el-button link size="small" type="danger" @click.stop>删除</el-button>
                         </template>
                     </el-popconfirm>
-                </template>
-            </el-popover>
+                </div>
+            </div>
+
             <slot name="operation-right"></slot>
         </div>
     </ItemCard>
@@ -145,13 +169,44 @@ const schemeItemClickEvent = () => {
 .item-operation {
     display: flex;
 }
+
+.item-operation {
+    align-items: center;
+}
+
+.operation-box {
+    transition: width 200ms linear;
+    position: absolute;
+    top: -6px;
+    right: 0;
+    width: 0px;
+    background-color: #fff;
+    overflow: hidden;
+    text-wrap: nowrap;
+    line-height: 32px;
+    height: 35px;
+}
+
+.mask {
+    z-index: 10;
+    position: fixed;
+    width: 99999px;
+    height: 99999px;
+    top: 0;
+    left: 0;
+}
 </style>
 
 <style>
 .el-popover.el-popper.scheme-item-operation {
     min-width: initial;
 }
+
 .item-title .el-checkbox {
     height: initial;
+}
+
+.operation-box .el-button+.el-button {
+    margin-left: 0;
 }
 </style>
