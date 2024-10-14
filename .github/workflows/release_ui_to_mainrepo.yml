@@ -1,0 +1,36 @@
+name: release_ui_to_mainrepo
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Clone Main Repository
+        run: git clone https://github.com/zzliux/assttyys_autojs.git -b ui_refactor
+      
+      - name: Install Dependencies
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
+        run: npm install
+
+      - name: Pack
+        run: npm run build2
+
+      - name: Push to Main Repository
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source-directory: './assttyys_autojs'
+          destination-github-username: 'zzliux'
+          destination-repository-name: 'assttyys_autojs'
+          user-email: zzliux@outlook.com
+          target-branch: ui_refactor

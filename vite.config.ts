@@ -4,6 +4,9 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
 import { viteSingleFile } from 'vite-plugin-singlefile';
+import { resolve } from 'node:path';
+
+const { VITE_BUILD_OUT_DIR } = process.env;
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -19,7 +22,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: 'D:/zz/assttyys_autojs/src' // 修改打包路径
+    outDir: VITE_BUILD_OUT_DIR ? resolve(VITE_BUILD_OUT_DIR) : 'D:/zz/assttyys_autojs/src' // 修改打包路径
   },
   server: {
     proxy: {
