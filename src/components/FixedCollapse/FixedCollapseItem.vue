@@ -90,20 +90,22 @@ const modelChangeEvent = (val: string) => {
             isOpen.value = true;
 
             // 关闭一个特高的，再打开一个矮的时候，当前item滚动直接超出父容器时，修复滚动位置
-            setTimeout(() => {
-                if (fixedCollapseItemHeaderRef.value.offsetTop < $parentContainerDom.value.scrollTop) {
-                    $parentContainerDom.value.scrollTo({
-                        top: fixedCollapseItemHeaderRef.value.offsetTop,
-                        behavior: 'smooth'
-                    });
-                }
-            }, 200);
+            // if (!$parentProps.multipart) {
+            //     setTimeout(() => {
+            //         if (fixedCollapseItemHeaderRef.value.offsetTop < $parentContainerDom.value.scrollTop) {
+            //             $parentContainerDom.value.scrollTo({
+            //                 top: fixedCollapseItemHeaderRef.value.offsetTop,
+            //                 behavior: 'smooth'
+            //             });
+            //         }
+            //     }, 200);
+            // }
         });
     } else {
         contentDomRef.value.style.height = `0px`;
         isOpen.value = false;
 
-        fixedCollapseItemHeaderRef.value.style.top = 'initial';
+        // fixedCollapseItemHeaderRef.value.style.top = 'initial';
     }
 }
 </script>
@@ -151,6 +153,8 @@ const modelChangeEvent = (val: string) => {
     justify-content: space-between;
     background-color: #fff;
     z-index: 1;
+    position: sticky;
+    top: 0;
 }
 
 .fixedCollapseItem-header-prevColorBox {

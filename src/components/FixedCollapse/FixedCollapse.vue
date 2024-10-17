@@ -1,7 +1,7 @@
 <!-- 父的高度固定时，整体高度超出父高度，未打开的折叠面板的item则会固定在父容器的上下两个位置 -->
 <script setup lang="ts">
 import { onMounted, onUnmounted, provide, ref } from 'vue';
-import { getAncestorBySelector } from '@/tools/tools';
+import { getAncestorBySelector, throttle } from '@/tools/tools';
 
 
 const fixedCollapseContainerRef = ref<HTMLDivElement>();
@@ -24,7 +24,7 @@ provide('fixedCollapse.containerRef', fixedCollapseContainerRef);
 
 // 折叠面板的header超出父容器时，自动固定在父容器顶部
 // 直接操作dom，不能修改子元素的类名等
-const containerScrollEvent = (e: Event) => {
+const containerScrollEvent = throttle((e: Event) => {
     if (!$props.fixHeader) return;
 
     const containerDom = e.target as HTMLDivElement;
@@ -42,15 +42,15 @@ const containerScrollEvent = (e: Event) => {
         if (ele === targetContainer) break;
         upHeight += (ele as HTMLElement).getBoundingClientRect().height;
     }
-    target.style.top = `${containerDom.scrollTop - upHeight}px`;
-}
+    // target.style.top = `${containerDom.scrollTop - upHeight}px`;
+}, 100);
 
 onMounted(() => {
-    fixedCollapseContainerRef.value.addEventListener('scroll', containerScrollEvent);
+    // fixedCollapseContainerRef.value.addEventListener('scroll', containerScrollEvent);
 });
 
 onUnmounted(() => {
-    fixedCollapseContainerRef.value?.removeEventListener('scroll', containerScrollEvent);
+    // fixedCollapseContainerRef.value?.removeEventListener('scroll', containerScrollEvent);
 });
 
 </script>

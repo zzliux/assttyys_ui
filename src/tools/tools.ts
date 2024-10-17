@@ -91,24 +91,38 @@ export const deepEqual = (a: any, b: any): boolean => {
 
 
 export const debounce = <T extends (...args: any[]) => any>(fn: T, delay: number = 100): T => {
-    let timerId: ReturnType<typeof setTimeout>;
-    return ((...args: Parameters<T>) => {
-        clearTimeout(timerId);
-        timerId = setTimeout(() => {
-            fn(...args);
-        }, delay);
-    }) as T;
-}
-
-export const throttle = <T extends (...args: any[]) => any>(fn: T, delay: number = 100): T => {
-    let timerId: ReturnType<typeof setTimeout>;
+    let timerId: ReturnType<typeof setTimeout> | undefined;
     return ((...args: Parameters<T>) => {
         if (timerId) {
             clearTimeout(timerId);
         }
         timerId = setTimeout(() => {
             fn(...args);
+            timerId = undefined; // 清除定时器引用
         }, delay);
+    }) as T;
+}
+
+export const throttle = <T extends (...args: any[]) => any>(fn: T, delay: number = 100): T => {
+    let timerId: ReturnType<typeof setTimeout> | undefined;
+    let lastExecTime = 0;
+
+    return ((...args: Parameters<T>) => {
+        const now = Date.now();
+        if (now - lastExecTime >= delay) {
+            if (timerId) {
+                clearTimeout(timerId);
+                timerId = undefined;
+            }
+            fn(...args);
+            lastExecTime = now;
+        } else if (!timerId) {
+            timerId = setTimeout(() => {
+                fn(...args);
+                timerId = undefined;
+                lastExecTime = Date.now();
+            }, delay - (now - lastExecTime));
+        }
     }) as T;
 }
 
