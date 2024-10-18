@@ -6,7 +6,7 @@ import SchedulerPage from './SchedulerPage.vue';
 
 
 const routes = [
-    { name: 'SchemeManagementPage', path: '/', component: SchemeManagementPage },
+    { name: 'SchemeManagementPageHome', path: '/', component: SchemeManagementPage },
     { name: 'SchemeManagementPage', path: '/SchemeManagementPage', component: SchemeManagementPage },
     { name: 'FunctionManagementPage', path: '/FunctionManagementPage', component: FunctionManagementPage },
     { name: 'SettingPage', path: '/SettingPage', component: SettingsPage },

@@ -12,7 +12,7 @@ const $props = defineProps({
     <div style="height: 46px; padding-top: 3px; padding-left: 10px">
         <el-page-header :icon="null">
             <template #title>
-                <el-text @click="$router.replace('/SchemeManagementPage')">ASSTTYYS</el-text>
+                <el-text @click="$router.push('/SchemeManagementPage')">ASSTTYYS</el-text>
             </template>
             <template #content>
                 <!-- <el-text>{{ $props.name }}</el-text> -->
@@ -23,7 +23,7 @@ const $props = defineProps({
                     <template #dropdown>
                         <el-dropdown-menu>
                             <template v-for="(item, index) in routesDefine">
-                                <el-dropdown-item v-if="item.name !== $props.name" @click="$router.replace(item.path)">
+                                <el-dropdown-item v-if="item.name !== $props.name" @click="$router.push(item.path)">
                                     <span>{{ item.name }}</span>
                                 </el-dropdown-item>
                             </template>

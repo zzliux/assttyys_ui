@@ -29,7 +29,7 @@ declare global {
 window.routeBack = function () {
     // if (window.history.state.back) {
     //     router.back();
-    if (router.currentRoute.value.name !== 'SchemeManagementPage' && window.history.state.back) {
+    if (!(router.currentRoute.value.name as string).includes('SchemeManagementPage') && window.history.state.back) {
         router.back();
     } else {
         if (window.routeBackFlag) {
