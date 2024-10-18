@@ -232,7 +232,7 @@ export const MockMethod: {
     },
     versionInfo: () => {
         return {
-            storeVersion: version,
+            storeVersion: versionList[Math.max(versionList.length - 1, 0)].version,
             versionList: deepClone(versionList)
         }
     },
@@ -344,8 +344,12 @@ export const MockMethod: {
     getClip: () => {
         return ''
     },
-    webloaded: () => {},
-    exit: () => {}
+    webloaded: () => { },
+    exit: () => { },
+    getAppInfo: () => {
+        // return { msg: `当前分辨率为 ${721} * ${1281}, 非推荐分辨率 720 * 1280, 不保证正常运行。` }
+        return { msg: '' }
+    }
 };
 
 export default MockMethod;

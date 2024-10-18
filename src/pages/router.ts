@@ -6,11 +6,11 @@ import SchedulerPage from './SchedulerPage.vue';
 
 
 const routes = [
-    { path: '/', component: SchemeManagementPage },
-    { path: '/SchemeManagementPage', component: SchemeManagementPage },
-    { path: '/FunctionManagementPage', component: FunctionManagementPage },
-    { path: '/SettingPage', component: SettingsPage },
-    { path: '/SchedulerPage', component: SchedulerPage },
+    { name: 'SchemeManagementPage', path: '/', component: SchemeManagementPage },
+    { name: 'SchemeManagementPage', path: '/SchemeManagementPage', component: SchemeManagementPage },
+    { name: 'FunctionManagementPage', path: '/FunctionManagementPage', component: FunctionManagementPage },
+    { name: 'SettingPage', path: '/SettingPage', component: SettingsPage },
+    { name: 'SchedulerPage', path: '/SchedulerPage', component: SchedulerPage },
 ];
 
 const router = createRouter({

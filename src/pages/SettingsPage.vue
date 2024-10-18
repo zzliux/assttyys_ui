@@ -15,7 +15,8 @@ const appVersion = ref<string>('');
 
 onMounted(async () => {
     await loadData();
-    appVersion.value = (await AutoWeb.autoPromise('versionInfo')).storeVersion;
+    const { versionList } = (await AutoWeb.autoPromise('versionInfo'));
+    appVersion.value = versionList[versionList.length - 1].version;
 });
 
 const loadData = async () => {
@@ -30,15 +31,16 @@ const itemChangeEvent = async (item: SettingItem) => {
 
 const globalResetEvent = async () => {
     ElMessageBox.confirm(
-        '即将清空并重置所有数据，确认是否执行？',
+        '即将清空并重置所有数据，重置后将退出脚本，是否继续？',
         '提示',
         {
             confirmButtonText: '确认',
             cancelButtonText: '取消',
             type: 'warning',
         }
-    ).then(() => {
-        return AutoWeb.autoPromise('clearStorage');
+    ).then(async () => {
+        await AutoWeb.autoPromise('clearStorage');
+        return await AutoWeb.autoPromise('exit');
     }).catch(() => {
         // 取消了
         return;
@@ -76,7 +78,7 @@ const startActivityForLog = () => {
             </div>
         </div>
         <VersionDialog ref="versionDialogRef" />
-        <div class="item-container"  @click.stop="versionDialogRef.open()">
+        <div class="item-container" @click.stop="versionDialogRef.open()">
             <div class="item-header">
                 <span class="item-header-text"><el-text size=small>版本：{{ appVersion }}</el-text></span>
             </div>

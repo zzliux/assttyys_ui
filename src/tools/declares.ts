@@ -258,4 +258,8 @@ export type AutoWebTypes = {
         param: void,
         result: void
     },
+    getAppInfo: {
+        param: void,
+        result: { msg: string }
+    },
 }

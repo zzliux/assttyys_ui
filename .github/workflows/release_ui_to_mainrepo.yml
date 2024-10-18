@@ -15,7 +15,7 @@ jobs:
           cache: npm
       
       - name: Clone Main Repository
-        run: git clone https://github.com/zzliux/assttyys_autojs.git -b ui_refactor
+        run: git clone https://github.com/zzliux/assttyys_autojs.git -b v66_dev
       
       - name: Install Dependencies
         run: npm install
@@ -36,4 +36,4 @@ jobs:
           destination-github-username: 'zzliux'
           destination-repository-name: 'assttyys_autojs'
           user-email: zzliux@outlook.com
-          target-branch: ui_refactor
+          target-branch: v66_dev

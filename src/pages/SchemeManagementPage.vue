@@ -7,7 +7,7 @@ import type { GroupSchemeName, Scheme } from '@/tools/declares';
 import SchemeItemCard from '@/components/SchemeItemCard.vue';
 import globalEmmiter from '@/tools/GlobalEventBus';
 import { deepClone, getGroupColor, groupedSchemeListToGroupSchemeNames, groupSchemeList, simplifySchemeList } from '@/tools/tools';
-import { Plus, Sort, Star, StarFilled, More, Expand, Fold, View, Hide, Folder, FolderOpened } from '@element-plus/icons-vue'
+import { Plus, Sort, Star, StarFilled, More, Expand, Fold, View, Hide, Folder, FolderOpened, Search } from '@element-plus/icons-vue'
 import SchemeEditDialog from '@/components/SchemeEditDialog/SchemeEditDialog.vue';
 import { ElMessage } from 'element-plus';
 import type { onConfirmOption } from '@/components/SchemeEditDialog';
@@ -159,12 +159,33 @@ const exportBtnEvent = async () => {
     exportDialogShown.value = true;
 }
 
+// 搜索晚点再做吧，新ui不适合使用elementsearch了，未被渲染的元素搜索不出来，而且还需要考虑折叠面板的使用
+// const searchStr = ref<string>('');
+// const searchInputShown = ref<boolean>(false);
+// const highLights = ref<Record<string, boolean>>({});
+// const currentHighLight = ref<string>('');
+// const searchChangeEvent = () => {
+//     if (!searchStr.value) return;
+//     // !config.value.showHiddenGroup && 
+//     highLights.value = {};
+//     schemeList.value.forEach(scheme => {
+//         if (scheme.schemeName.includes(searchStr.value)) {
+//             highLights.value[scheme.schemeName] = true;
+
+//         }
+//     })
+//     console.log(groupSchemeNames.value);
+// }
+
 
 </script>
 
 <template>
     <Nav name="方案管理">
         <template #extra>
+            <!-- <el-input class="search-box" v-model="searchStr" size="small"
+                :style="{ width: searchInputShown ? '120px' : '34px' }" placeholder="请输入关键字" :suffix-icon="Search"
+                @focus="searchInputShown = true" @blur="searchInputShown = false" @change="searchChangeEvent" /> -->
             <el-button link @click="switchExportMode">
                 <el-icon>
                     <Expand />
@@ -346,6 +367,14 @@ const exportBtnEvent = async () => {
 
 .drag-group-handle {
     margin-right: 10px;
+}
+
+::v-deep(.el-input.search-box) {
+    transition: width .2s ease-in-out;
+}
+
+::v-deep(.el-input__wrapper) {
+    border: none !important;
 }
 </style>
 <style>
