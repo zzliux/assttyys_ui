@@ -26,12 +26,12 @@ watch(config, (newVal, oldVal) => {
 }, { deep: true });
 watch(() => config.value.collapseAccordion, (newVal) => {
     nextTick(() => {
-        const vals = collapseVal.value.split(',');
-        collapseVal.value = vals[vals.length - 1];
+        const vals = groupCollapseVal.value.split(',');
+        groupCollapseVal.value = vals[vals.length - 1];
     });
 });
-const collapseVal = ref('');
-watch(collapseVal, (newVal) => {
+const groupCollapseVal = ref('');
+watch(groupCollapseVal, (newVal) => {
     config.value.currentCollapseVal = newVal;
 });
 
@@ -124,9 +124,9 @@ const showHideGroup = async (e: MouseEvent, groupNameStr: string, hidden: boolea
 onMounted(async () => {
     await loadData();
     if (typeof config.value.currentCollapseVal === 'undefined') {
-        collapseVal.value = groupSchemeNames.value[0].groupName;
+        groupCollapseVal.value = groupSchemeNames.value[0].groupName;
     } else {
-        collapseVal.value = config.value.currentCollapseVal;
+        groupCollapseVal.value = config.value.currentCollapseVal;
     }
     globalEmmiter.on('Event.SchemeItemCard.Operation', (option) => {
         loadData();
@@ -159,23 +159,77 @@ const exportBtnEvent = async () => {
     exportDialogShown.value = true;
 }
 
-// 搜索晚点再做吧，新ui不适合使用elementsearch了，未被渲染的元素搜索不出来，而且还需要考虑折叠面板的使用
-// const searchStr = ref<string>('');
-// const searchInputShown = ref<boolean>(false);
-// const highLights = ref<Record<string, boolean>>({});
-// const currentHighLight = ref<string>('');
-// const searchChangeEvent = () => {
-//     if (!searchStr.value) return;
-//     // !config.value.showHiddenGroup && 
-//     highLights.value = {};
-//     schemeList.value.forEach(scheme => {
-//         if (scheme.schemeName.includes(searchStr.value)) {
-//             highLights.value[scheme.schemeName] = true;
+const searchStr = ref<string>('');
+const searchInputShown = ref<boolean>(false);
+const highLights = ref<{ groupName: string, schemeName: string }[]>(); // 本来想用set的，怕不同环境对set的有序遍历的支持不一样，改为用数组手动控制
+const currentHighLight = ref<{ groupName: string, schemeName: string }>();
+const serchKeyEvent = (e: KeyboardEvent) => {
+    if (e.code !== 'Enter') return;
+    searchInputEvent(e.shiftKey);
+}
 
-//         }
-//     })
-//     console.log(groupSchemeNames.value);
-// }
+// 返回是否能用str2搜索str1，目前仅考虑str1.includes(str2)
+// 后续可能会考虑pinyin/pinyin首字母
+const strIncludeLike = (str1: string, str2: string) => {
+    return str1.includes(str2);
+}
+
+const searchInputEvent = (prev?: boolean) => {
+    if (!searchStr.value) return;
+    highLights.value = [];
+    // 不能用schemeList，只能用groupSchemeNames，这样又得对分组、方案同时搜索与保存
+    groupSchemeNames.value.forEach(group => {
+        if (!config.value.showHiddenGroup && group.hidden) return;
+        group.schemeNames.forEach(schemeName => {
+            if (strIncludeLike(schemeName, searchStr.value)) {
+                const index = highLights.value.findIndex(item => item.groupName === group.groupName && item.schemeName === schemeName);
+                if (-1 === index) {
+                    highLights.value.push({
+                        groupName: group.groupName,
+                        schemeName
+                    });
+                }
+            }
+        });
+    });
+    const index = highLights.value.findIndex(item => item.groupName === currentHighLight.value?.groupName && item.schemeName === currentHighLight.value?.schemeName);
+    if (-1 === index) {
+        currentHighLight.value = highLights.value[0];
+    } else {
+        currentHighLight.value = highLights.value[(index + (prev ? highLights.value.length - 1 : 1)) % highLights.value.length];
+    }
+
+    if (config.value.collapseAccordion) {
+        if (currentHighLight.value) {
+            groupCollapseVal.value = currentHighLight.value.groupName
+        }
+    } else {
+        const arr = groupCollapseVal.value.split(',');
+        const index = arr.findIndex(str => str === currentHighLight.value?.groupName);
+        if (-1 === index && currentHighLight.value) {
+            arr.push(currentHighLight.value.groupName);
+            groupCollapseVal.value = arr.join(',');
+        }
+    }
+    const eleAll: HTMLElement[] = [].slice.call(document.querySelectorAll('[sflag]'));
+    let targetEle = null;
+    for (let ele of eleAll) {
+        ele.parentElement.parentElement.style.backgroundColor = 'inherit';
+        const sflag = ele.getAttribute('sflag');
+        if (sflag === `${currentHighLight.value?.groupName}-${currentHighLight.value?.schemeName}`) {
+            targetEle = ele;
+        } else if (-1 !== highLights.value.findIndex(item => `${item.groupName}-${item.schemeName}` === sflag)) {
+            ele.parentElement.parentElement.style.backgroundColor = '#ffffe0'
+        }
+    }
+    if (!targetEle) return;
+
+    targetEle.parentElement.parentElement.style.backgroundColor = '#eee8aa'
+    targetEle.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+    });
+}
 
 
 </script>
@@ -183,9 +237,10 @@ const exportBtnEvent = async () => {
 <template>
     <Nav name="方案管理">
         <template #extra>
-            <!-- <el-input class="search-box" v-model="searchStr" size="small"
+            <el-input class="search-box" v-model="searchStr" size="small"
                 :style="{ width: searchInputShown ? '120px' : '34px' }" placeholder="请输入关键字" :suffix-icon="Search"
-                @focus="searchInputShown = true" @blur="searchInputShown = false" @change="searchChangeEvent" /> -->
+                @focus="searchInputShown = true" @blur="searchInputShown = false" @keyup="serchKeyEvent"
+                @input="searchInputEvent(false)" />
             <el-button link @click="switchExportMode">
                 <el-icon>
                     <Expand />
@@ -215,7 +270,8 @@ const exportBtnEvent = async () => {
         </template>
     </Nav>
     <div class="container">
-        <FixedCollapse v-model="collapseVal" :multipart="!config.collapseAccordion" :fix-header="true">
+        <FixedCollapse v-model="groupCollapseVal" :multipart="!config.collapseAccordion" :fix-header="true"
+            :pre-render-content="true">
             <draggable :force-fallback="true" v-model="groupSchemeNames" item-key="groupName"
                 handle=".drag-group-handle" v-bind="dragOptions" @update="groupNamesDragEndEvent"
                 :group="{ name: 'groupNames' }">
@@ -226,17 +282,11 @@ const exportBtnEvent = async () => {
                         :name="groupSchemeName.groupName">
                         <template #header><el-text size="small">{{ groupSchemeName.groupName }}</el-text></template>
                         <template #header-icon-left>
-                            <!-- 好像没有阻止#reference点击事件冒泡的手段，需要手动控制显示与关闭，有点麻烦，暂时不做二次确认 -->
-                            <!-- <el-popconfirm title="确认是否隐藏" confirm-button-text="确认" cancel-button-text="取消"
-                                @confirm="showHideGroup($event, groupSchemeName.groupName, !groupSchemeName.hidden)">
-                                <template #reference> -->
                             <el-text size="small" class="group-show-hide-btn"
                                 @click.stop="showHideGroup($event, groupSchemeName.groupName, !groupSchemeName.hidden)"><el-icon>
                                     <View v-if="!groupSchemeName.hidden" />
                                     <Hide v-else />
                                 </el-icon></el-text>
-                            <!-- </template>
-            </el-popconfirm> -->
                             <el-text size="small" class="add-scheme-btn"
                                 @click.stop="addSchemeItemEvent(groupSchemeName.groupName)"><el-icon>
                                     <Plus />
@@ -274,18 +324,6 @@ const exportBtnEvent = async () => {
                                         </SchemeItemCard>
                                     </div>
                                 </template>
-                                <!-- <template #footer>
-                                    <div class="item-card-addscheme-container">
-                                        <ItemCard>
-                                            <div class="item-card-addscheme"
-                                                @click="addSchemeItemEvent(groupSchemeName.groupName)">
-                                                <el-text><el-icon>
-                                                        <Plus />
-                                                    </el-icon> 添加方案</el-text>
-                                            </div>
-                                        </ItemCard>
-                                    </div>
-                                </template> -->
                             </draggable>
                         </template>
                     </FixedCollapseItem>
@@ -375,6 +413,10 @@ const exportBtnEvent = async () => {
 
 ::v-deep(.el-input__wrapper) {
     border: none !important;
+}
+
+::v-deep(.el-input__suffix) {
+    color: inherit;
 }
 </style>
 <style>

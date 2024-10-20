@@ -128,7 +128,8 @@ const operationBoxHide = () => {
         <div class="item-title">
             <el-checkbox @click.stop v-if="$props.showCheckBox" v-model="$props.scheme.export" size="small"
                 style="margin-right: 5px"></el-checkbox>
-            <el-text size="small">{{ $props.scheme?.schemeName }}</el-text>
+            <el-text size="small" :sflag="`${groupName}-${scheme.schemeName}`">{{
+                $props.scheme?.schemeName }}</el-text>
         </div>
         <div class="item-operation">
             <slot name="operation-left"></slot>

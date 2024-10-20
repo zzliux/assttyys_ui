@@ -26,7 +26,7 @@ const $props = defineProps({
     },
 });
 
-const $parentProps = inject<{ multipart: boolean, modelValue: string }>('fixedCollapse.instanceProps');
+const $parentProps = inject<{ multipart: boolean, modelValue: string, preRenderContent: boolean }>('fixedCollapse.instanceProps');
 const $parentContainerDom = inject<Ref<HTMLDivElement, HTMLDivElement>>('fixedCollapse.containerRef');
 const $parentModel = inject<ModelRef<string>>('fixedCollapse.instanceModel');
 const isOpen = ref(false);
@@ -134,7 +134,7 @@ const modelChangeEvent = (val: string) => {
             </div>
         </div>
         <div class="fixedCollapseItem-content" ref="contentDomRef">
-            <div v-if="isOpen || isOpenDelay" class="fixedCollapseItem-contentInner" ref="contentInnerDomRef">
+            <div v-if="$parentProps.preRenderContent || (isOpen || isOpenDelay)" class="fixedCollapseItem-contentInner" ref="contentInnerDomRef">
                 <slot name="content"></slot>
             </div>
         </div>

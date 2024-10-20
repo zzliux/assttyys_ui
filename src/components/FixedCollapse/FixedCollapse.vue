@@ -14,6 +14,10 @@ const $props = defineProps({
     fixHeader: {
         default: false,
         type: Boolean
+    },
+    preRenderContent: {
+        default: false,
+        type: Boolean
     }
 });
 const model = defineModel<string>();
