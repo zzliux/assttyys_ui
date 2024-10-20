@@ -164,7 +164,7 @@ const searchInputShown = ref<boolean>(false);
 const highLights = ref<{ groupName: string, schemeName: string }[]>(); // 本来想用set的，怕不同环境对set的有序遍历的支持不一样，改为用数组手动控制
 const currentHighLight = ref<{ groupName: string, schemeName: string }>();
 const serchKeyEvent = (e: KeyboardEvent) => {
-    if (e.code !== 'Enter') return;
+    if (e.key !== 'Enter') return;
     searchInputEvent(e.shiftKey);
 }
 
