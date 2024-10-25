@@ -1,16 +1,30 @@
 <script setup lang="ts">
 import { ArrowDown } from '@element-plus/icons-vue';
-import { routesDefine } from '../pages/router';
+import router, { routesDefine } from '../pages/router';
+import { onMounted, ref } from 'vue';
 
 const $props = defineProps({
     name: String
+});
+
+const avatarURL = ref<string>('');
+
+onMounted(async () => {
+    const userInfo = JSON.parse(sessionStorage.getItem('userInfo') || '{}');
+    if (!userInfo.name) {
+        router.replace('/OAuth');
+    }
+    avatarURL.value = userInfo.avatar_url;
 });
 
 </script>
 
 <template>
     <div style="height: 46px; padding-top: 3px; padding-left: 10px">
-        <el-page-header :icon="null">
+        <el-page-header>
+            <template #icon>
+                <el-avatar :size="20" src="avatarURL" />
+            </template>
             <template #title>
                 <el-text @click="$router.push('/SchemeManagementPage')">ASSTTYYS</el-text>
             </template>
