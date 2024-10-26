@@ -31,11 +31,11 @@ const routesDefine = [
 
 // 处理github回调过来时的登录认证
 if (window.location.href.includes('?code=')) {
-    const code = window.location.href.match(/\?code=([^&#]+)/)?.[1];
+    const [_all, url, code] = window.location.href.match(/^(.+)\?code=([^&#]+)/);
     // const code = window.location.href.split('?code=')[1];
-    localStorage.setItem('code', code);
+    sessionStorage.setItem('code', code);
     // TODO 该方式会丢失context-path，如果是二级目录部署，或file://文件协议访问，该回跳的方式就会有问题
-    window.location.href = '/#/OAuth';
+    window.location.href = `${url}#/OAuth`;
     // router.push('/OAuth');
 }
 

@@ -23,7 +23,7 @@ onMounted(async () => {
     <div style="height: 46px; padding-top: 3px; padding-left: 10px">
         <el-page-header>
             <template #icon>
-                <el-avatar :size="20" src="avatarURL" />
+                <el-avatar :size="20" :src="avatarURL" />
             </template>
             <template #title>
                 <el-text @click="$router.push('/SchemeManagementPage')">ASSTTYYS</el-text>

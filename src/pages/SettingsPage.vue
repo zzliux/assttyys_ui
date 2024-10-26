@@ -5,7 +5,8 @@ import VersionDialog from '@/components/VersionDialog.vue';
 import { AutoWeb } from '@/tools/AutoWeb';
 import type { SettingItem } from '@/tools/declares';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { onMounted, ref } from 'vue';
+import { h, onMounted, ref } from 'vue';
+import router from './router';
 
 
 const settingList = ref<SettingItem[]>();
@@ -51,6 +52,30 @@ const startActivityForLog = () => {
     AutoWeb.autoPromise('startActivityForLog');
 }
 
+const logout = () => {
+
+    ElMessageBox.confirm(
+        // h(ElText, { size: 'small' }, '确认是否退出登录'),
+        '确认是否退出登录',
+        '提示',
+        {
+            confirmButtonText: '确认',
+            cancelButtonText: '取消',
+            type: 'warning',
+            buttonSize: 'small',
+        }
+    ).then(async () => {
+        sessionStorage.removeItem('access_token');
+        sessionStorage.removeItem('userInfo');
+        localStorage.removeItem('autoOAuth');
+        router.replace('/OAuth');
+        return;
+    }).catch(() => {
+        // 取消了
+        return;
+    });
+}
+
 </script>
 <template>
     <Nav name="设置">
@@ -86,6 +111,11 @@ const startActivityForLog = () => {
         <div class="item-container" @click="startActivityForLog">
             <div class="item-header">
                 <span class="item-header-text"><el-text size=small>查看日志</el-text></span>
+            </div>
+        </div>
+        <div class="item-container" @click="logout">
+            <div class="item-header">
+                <span class="item-header-text"><el-text size=small>退出登录</el-text></span>
             </div>
         </div>
         <div class="item-container" @click="globalResetEvent">
