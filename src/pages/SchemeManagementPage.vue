@@ -9,10 +9,11 @@ import globalEmmiter from '@/tools/GlobalEventBus';
 import { deepClone, getGroupColor, groupedSchemeListToGroupSchemeNames, groupSchemeList, simplifySchemeList } from '@/tools/tools';
 import { Plus, Sort, Star, StarFilled, More, Expand, Fold, View, Hide, Folder, FolderOpened, Search } from '@element-plus/icons-vue'
 import SchemeEditDialog from '@/components/SchemeEditDialog/SchemeEditDialog.vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import type { onConfirmOption } from '@/components/SchemeEditDialog';
 import draggable from '@marshallswain/vuedraggable';
 import ImportSchemeDialog from '@/components/ImportSchemeDialog.vue';
+import VersionDialog from '@/components/VersionDialog.vue';
 
 
 const config = ref<{
@@ -42,6 +43,7 @@ const exportMode = ref<boolean>(false);
 const exportDialogStr = ref<string>('');
 const exportDialogShown = ref<boolean>(false);
 const importDialogShown = ref<boolean>(false);
+const versionDialogRef = ref<InstanceType<typeof VersionDialog>>();
 
 async function loadData() {
     // schemeList.value = await AutoWeb.autoPromise('getSchemeList');
@@ -131,6 +133,22 @@ onMounted(async () => {
     globalEmmiter.on('Event.SchemeItemCard.Operation', (option) => {
         loadData();
     });
+
+
+
+    
+    const userInfo = sessionStorage.getItem('userInfo');
+    if (!userInfo) return;
+    const webloaded = sessionStorage.getItem('webloaded');
+    if (webloaded) return;
+    
+    await AutoWeb.autoPromise('webloaded');
+    sessionStorage.setItem('webloaded', 'true');
+    versionDialogRef.value.open(true);
+    const appInfos = await AutoWeb.autoPromise('getAppInfo');
+    if (appInfos?.msg) {
+        ElMessageBox.alert(appInfos?.msg, '提示')
+    }
 });
 
 
@@ -342,6 +360,7 @@ const searchInputEvent = (prev?: boolean) => {
                 @click="AutoWeb.autoPromise('copyToClip', exportDialogStr)">复制</el-button>
         </el-dialog>
         <ImportSchemeDialog v-model="importDialogShown" />
+        <VersionDialog ref="versionDialogRef" />
     </div>
 </template>
 
