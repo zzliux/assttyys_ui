@@ -41,7 +41,7 @@ onMounted(async () => {
         isLogining.value = true;
     }
     const res = await doPost('/api/github/user', { access_token: accessToken });
-    if (!res?.name) {
+    if (!res?.login) {
         sessionStorage.removeItem('access_token');
         isLogining.value = false;
         if (autoOAuth.value) {
