@@ -11,7 +11,7 @@ const avatarURL = ref<string>('');
 
 onMounted(async () => {
     const userInfo = JSON.parse(sessionStorage.getItem('userInfo') || '{}');
-    if (!userInfo.name) {
+    if (!userInfo.login) {
         router.replace('/OAuth');
     }
     avatarURL.value = userInfo.avatar_url;
