@@ -355,7 +355,8 @@ export const MockMethod: {
     },
     openURL: (url: string) => {
         window.open(url);
-    }
+    },
+    startScript: () => {}
 };
 
 export default MockMethod;

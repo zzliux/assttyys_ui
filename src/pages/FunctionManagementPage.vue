@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref } from "vue";
 import Nav from "../components/Nav.vue";
 import type { CommonConfigItem, Func, FuncView, GroupSchemeName, Scheme } from "@/tools/declares";
 import { useRoute } from "vue-router";
@@ -7,7 +7,7 @@ import { AutoWeb } from "@/tools/AutoWeb";
 import { deepClone } from "@/tools/tools";
 import { FixedCollapse, FixedCollapseItem } from "@/components/FixedCollapse";
 import draggable from '@marshallswain/vuedraggable';
-import { Sort, Setting } from '@element-plus/icons-vue';
+import { Sort, Setting, Wallet, Promotion } from '@element-plus/icons-vue';
 import { ElMessage } from "element-plus";
 
 const $route = useRoute();
@@ -132,7 +132,7 @@ const loadData = async () => {
     schemeOld.value = deepClone(scheme.value);
     watchSchemeEvent(scheme.value);
 }
-const saveScheme = async () => {
+const saveScheme = async (flag?: boolean) => {
     const result = await AutoWeb.autoPromise('saveScheme', {
         oldScheme: schemeOld.value,
         newScheme: scheme.value,
@@ -143,7 +143,12 @@ const saveScheme = async () => {
         return;
     }
     await AutoWeb.autoPromise('setCurrentScheme', $route.query.schemeName as string);
-    ElMessage.success('保存成功');
+    !flag && ElMessage.success('保存成功');
+}
+
+const runScheme = async () => {
+    await saveScheme(true);
+    await AutoWeb.autoPromise('startScript');
 }
 
 </script>
@@ -226,7 +231,8 @@ const saveScheme = async () => {
             </draggable>
         </FixedCollapse>
         <div style="position: fixed; right: 10px; bottom: 10px; z-index: 1;">
-            <el-button type="primary" @click="saveScheme" size="small">保存</el-button>
+            <el-button style="padding: 10px 10px;" type="primary" @click="saveScheme" size="small"><el-icon><Wallet /></el-icon>&nbsp;保存</el-button>
+            <el-button style="padding: 10px 10px; margin-left: 5px" type="warning" @click="runScheme" size="small"><el-icon><Promotion /></el-icon>&nbsp;启动</el-button>
         </div>
     </div>
     <el-dialog v-model="commonConfigDialogShown" align-center>
@@ -262,6 +268,7 @@ const saveScheme = async () => {
     align-items: center;
     height: 24px;
 }
+
 .drag-item-card-scheme-handle {
     margin-right: 10px;
 }
