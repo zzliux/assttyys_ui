@@ -349,6 +349,12 @@ export const MockMethod: {
     getAppInfo: () => {
         // return { msg: `当前分辨率为 ${721} * ${1281}, 非推荐分辨率 720 * 1280, 不保证正常运行。` }
         return { msg: '' }
+    },
+    getDeviceId: () => {
+        return '6d88s7';
+    },
+    openURL: (url: string) => {
+        window.open(url);
     }
 };
 

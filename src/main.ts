@@ -24,6 +24,7 @@ declare global {
         routeBack: () => void;
         routeBackFlag: boolean;
         loadScheduleData: Function;
+        resumeValidUser: Function;
     }
 }
 window.routeBack = function () {

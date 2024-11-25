@@ -262,4 +262,12 @@ export type AutoWebTypes = {
         param: void,
         result: { msg: string }
     },
+    getDeviceId: {
+        param: void,
+        result: string
+    }
+    openURL: {
+        param: string,
+        result: void
+    }
 }
