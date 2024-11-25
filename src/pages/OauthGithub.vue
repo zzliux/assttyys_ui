@@ -55,8 +55,8 @@ const copyGithubOAuthURL = async () => {
 
 <template>
     <div style="display: flex;height: 70px;flex-direction: column;justify-content: space-around;margin-top: 100px;">
-        <el-text size="small">请登录后使用，点击跳转将跳转至浏览器，请使用github账号登录，完成后返回本应用</el-text>
-        <el-text size="small">或复制授权链接后自行选择浏览器，并github账号登录，完成后返回本应用并点击验证</el-text>
+        <el-text size="small">请登录后使用，点击跳转将跳转至浏览器，使用github账号登录，完成后返回本应用</el-text>
+        <el-text size="small">或复制授权链接后自行选择浏览器，登录完成后返回本应用并点击验证</el-text>
         <div style="display: flex; justify-content: center">
             <el-checkbox v-model="autoOAuth" size="small" label="记住选择" />
             <el-button style="margin-left: 20px;" type="primary" size="small" @click="gotoGithubOAuth">跳转</el-button>
