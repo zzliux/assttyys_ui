@@ -10,7 +10,7 @@ const $props = defineProps({
     name: String,
     prevColor: {
         type: String,
-        default: '#fff'
+        default: 'inherit'
     },
     headerIcon: {
         type: Object,

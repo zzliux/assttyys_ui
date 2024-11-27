@@ -4,10 +4,10 @@ import Nav from "../components/Nav.vue";
 import type { CommonConfigItem, Func, FuncView, GroupSchemeName, Scheme } from "@/tools/declares";
 import { useRoute } from "vue-router";
 import { AutoWeb } from "@/tools/AutoWeb";
-import { deepClone } from "@/tools/tools";
+import { deepClone, throttle } from "@/tools/tools";
 import { FixedCollapse, FixedCollapseItem } from "@/components/FixedCollapse";
 import draggable from '@marshallswain/vuedraggable';
-import { Sort, Setting, Wallet, Promotion } from '@element-plus/icons-vue';
+import { Sort, Setting, Wallet, Promotion, Search } from '@element-plus/icons-vue';
 import { ElMessage } from "element-plus";
 
 const $route = useRoute();
@@ -151,10 +151,59 @@ const runScheme = async () => {
     await AutoWeb.autoPromise('startScript');
 }
 
+
+
+const searchStr = ref<string>('');
+const searchInputShown = ref<boolean>(false);
+const currentHighLightIndex = ref<number>(0);
+const serchKeyEvent = (e: KeyboardEvent) => {
+    if (e.key !== 'Enter') return;
+    searchInputEvent(e.shiftKey, true);
+}
+
+// 返回是否能用str2搜索str1，目前仅考虑str1.includes(str2)
+// 后续可能会考虑pinyin/pinyin首字母
+const strIncludeLike = (str1: string, str2: string) => {
+    return str1.includes(str2);
+}
+
+const searchInputEvent = throttle((prev?: boolean, flag?: boolean) => {
+    if (!searchStr.value) return;
+    const eleAll: HTMLElement[] = [].slice.call(document.querySelectorAll('[sflag]'));
+    const eleHi: HTMLElement[] = [];
+    for (let i = 0; i < eleAll.length; i++) {
+        const ele = eleAll[i];
+        ele.parentElement.parentElement.parentElement.style.backgroundColor = 'white';
+        const sflag = ele.getAttribute('sflag');
+        if (strIncludeLike(sflag, searchStr.value)) {
+            ele.parentElement.parentElement.parentElement.style.backgroundColor = '#ffffe0';
+            eleHi.push(ele);
+        }
+    }
+    
+    if (flag) {
+        currentHighLightIndex.value = (currentHighLightIndex.value + (prev ? eleHi.length - 1 : 1)) % eleHi.length;
+    } else {
+        currentHighLightIndex.value = 0;
+    }
+    const targetEle = eleHi[currentHighLightIndex.value];
+    targetEle.parentElement.parentElement.parentElement.style.backgroundColor = '#eee8aa'
+    targetEle.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+    });
+}, 20)
+
+
+
 </script>
 <template>
     <Nav :name="`功能管理：${$route.query.schemeName}`">
         <template #extra>
+            <el-input class="search-box" v-model="searchStr" size="small"
+                :style="{ width: searchInputShown ? '120px' : '34px' }" placeholder="请输入关键字" :suffix-icon="Search"
+                @focus="searchInputShown = true" @blur="searchInputShown = false" @keyup="serchKeyEvent"
+                @input="searchInputEvent(false)" />
             <span style="margin-right: 10px">
                 <el-button link @click="commonConfigDialogShown = true"><el-icon>
                         <Setting />
@@ -170,7 +219,7 @@ const runScheme = async () => {
                     <FixedCollapseItem :name="`${item.id} ${item.name}`">
                         <template #header>
                             <div>
-                                <div style="margin-bottom: 5px;">
+                                <div style="margin-bottom: 5px;" :sflag="`${item.id}${item.name}`">
                                     <el-text size="small" style="margin-bottom: 5px; font-weight: bold;">
                                         {{ item.id }} {{ item.name }} {{ item.config?.length > 0 ? '*' : '' }}
                                     </el-text>
@@ -231,8 +280,13 @@ const runScheme = async () => {
             </draggable>
         </FixedCollapse>
         <div style="position: fixed; right: 10px; bottom: 10px; z-index: 1;">
-            <el-button style="padding: 10px 10px;" type="primary" @click="saveScheme" size="small"><el-icon><Wallet /></el-icon>&nbsp;保存</el-button>
-            <el-button style="padding: 10px 10px; margin-left: 5px" type="warning" @click="runScheme" size="small"><el-icon><Promotion /></el-icon>&nbsp;启动</el-button>
+            <el-button style="padding: 10px 10px;" type="primary" @click="saveScheme" size="small"><el-icon>
+                    <Wallet />
+                </el-icon>&nbsp;保存</el-button>
+            <el-button style="padding: 10px 10px; margin-left: 5px" type="warning" @click="runScheme"
+                size="small"><el-icon>
+                    <Promotion />
+                </el-icon>&nbsp;启动</el-button>
         </div>
     </div>
     <el-dialog v-model="commonConfigDialogShown" align-center>
@@ -271,6 +325,19 @@ const runScheme = async () => {
 
 .drag-item-card-scheme-handle {
     margin-right: 10px;
+}
+
+
+::v-deep(.el-input.search-box) {
+    transition: width .2s ease-in-out;
+}
+
+::v-deep(.el-input__wrapper) {
+    border: none !important;
+}
+
+::v-deep(.el-input__suffix) {
+    color: inherit;
 }
 </style>
 

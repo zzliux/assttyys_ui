@@ -6,7 +6,7 @@ import { FixedCollapse, FixedCollapseItem } from '@/components/FixedCollapse';
 import type { GroupSchemeName, Scheme } from '@/tools/declares';
 import SchemeItemCard from '@/components/SchemeItemCard.vue';
 import globalEmmiter from '@/tools/GlobalEventBus';
-import { deepClone, getGroupColor, groupedSchemeListToGroupSchemeNames, groupSchemeList, simplifySchemeList } from '@/tools/tools';
+import { deepClone, getGroupColor, groupedSchemeListToGroupSchemeNames, groupSchemeList, simplifySchemeList, throttle } from '@/tools/tools';
 import { Plus, Sort, Star, StarFilled, More, Expand, Fold, View, Hide, Folder, FolderOpened, Search } from '@element-plus/icons-vue'
 import SchemeEditDialog from '@/components/SchemeEditDialog/SchemeEditDialog.vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -183,7 +183,7 @@ const highLights = ref<{ groupName: string, schemeName: string }[]>(); // 本来
 const currentHighLight = ref<{ groupName: string, schemeName: string }>();
 const serchKeyEvent = (e: KeyboardEvent) => {
     if (e.key !== 'Enter') return;
-    searchInputEvent(e.shiftKey);
+    searchInputEvent(e.shiftKey, true);
 }
 
 // 返回是否能用str2搜索str1，目前仅考虑str1.includes(str2)
@@ -192,7 +192,12 @@ const strIncludeLike = (str1: string, str2: string) => {
     return str1.includes(str2);
 }
 
-const searchInputEvent = (prev?: boolean) => {
+/**
+ * 
+ * @param prev 是否向前搜索
+ * @param flag true时表示执行高亮切换
+ */
+const searchInputEvent = throttle((prev?: boolean, flag?: boolean) => {
     if (!searchStr.value) return;
     highLights.value = [];
     // 不能用schemeList，只能用groupSchemeNames，这样又得对分组、方案同时搜索与保存
@@ -211,7 +216,7 @@ const searchInputEvent = (prev?: boolean) => {
         });
     });
     const index = highLights.value.findIndex(item => item.groupName === currentHighLight.value?.groupName && item.schemeName === currentHighLight.value?.schemeName);
-    if (-1 === index) {
+    if (!flag) {
         currentHighLight.value = highLights.value[0];
     } else {
         currentHighLight.value = highLights.value[(index + (prev ? highLights.value.length - 1 : 1)) % highLights.value.length];
@@ -243,11 +248,13 @@ const searchInputEvent = (prev?: boolean) => {
     if (!targetEle) return;
 
     targetEle.parentElement.parentElement.style.backgroundColor = '#eee8aa'
-    targetEle.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-    });
-}
+    setTimeout(() => {
+        targetEle.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+        });
+    }, 200)
+}, 20)
 
 
 </script>
