@@ -1,5 +1,13 @@
 import type { onConfirmOption as onSchemeSaveConfirmOption } from "@/components/SchemeEditDialog";
 
+export type SchemePageConfig = {
+    showHiddenGroup: boolean,
+    currentCollapseVal: string,
+    collapseAccordion: boolean,
+    hiddenUnStar: boolean,
+    scrollSettle: boolean,
+};
+
 export type FuncConfig = {
     desc: string;
     config: {

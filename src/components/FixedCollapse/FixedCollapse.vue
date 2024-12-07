@@ -2,6 +2,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, provide, ref } from 'vue';
 import { getAncestorBySelector, throttle } from '@/tools/tools';
+import type { SchemePageConfig } from '@/tools/declares';
+import globalEmmiter from '@/tools/GlobalEventBus';
 
 
 const fixedCollapseContainerRef = ref<HTMLDivElement>();
@@ -25,6 +27,8 @@ const model = defineModel<string>();
 provide('fixedCollapse.instanceProps', $props);
 provide('fixedCollapse.instanceModel', model);
 provide('fixedCollapse.containerRef', fixedCollapseContainerRef);
+
+const scrollSettle = ref<boolean>(false);
 
 // 折叠面板的header超出父容器时，自动固定在父容器顶部
 // 直接操作dom，不能修改子元素的类名等
@@ -51,16 +55,24 @@ const containerScrollEvent = throttle((e: Event) => {
 
 onMounted(() => {
     // fixedCollapseContainerRef.value.addEventListener('scroll', containerScrollEvent);
+    // scrollSettle
+    const config: SchemePageConfig = JSON.parse(localStorage.getItem('store.schemeManagement') || '{}');
+    scrollSettle.value = !!config.scrollSettle;
+    globalEmmiter.on('Event.SchemeManagementPage.configUpdate', (config: SchemePageConfig) => {
+        scrollSettle.value = !!config.scrollSettle;
+    });
 });
 
 onUnmounted(() => {
     // fixedCollapseContainerRef.value?.removeEventListener('scroll', containerScrollEvent);
+    globalEmmiter.off('Event.SchemeManagementPage.configUpdate');
 });
 
 </script>
 
 <template>
-    <div class="fixed-collapse-container" ref="fixedCollapseContainerRef">
+    <div :class="`fixed-collapse-container ${scrollSettle ? 'scroll-settle' : ''}`"
+        ref="fixedCollapseContainerRef">
         <slot name="default"></slot>
     </div>
 </template>
@@ -71,5 +83,41 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
     overflow: auto;
+}
+
+.scroll-settle {
+    height: 100%;
+    transition: height 0.5s cubic-bezier(0.65, 0.05, 0.36, 1);
+    overflow-y: scroll;
+}
+
+.scroll-settle::-webkit-scrollbar-track-piece {
+    background-color: rgba(0, 0, 0, 0);
+    border-left: 1px solid rgba(0, 0, 0, 0);
+}
+
+.scroll-settle::-webkit-scrollbar {
+    width: 20px;
+    height: 20px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
+
+.scroll-settle::-webkit-scrollbar-thumb {
+    background-color: rgba(191, 191, 191, 191);
+    background-clip: padding-box;
+    -webkit-background-clip: padding-box;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    min-height: 28px;
+}
+
+.scroll-settle::webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.5);
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
 }
 </style>

@@ -3,7 +3,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { AutoWeb } from '@/tools/AutoWeb';
 import Nav from '@/components/Nav.vue';
 import { FixedCollapse, FixedCollapseItem } from '@/components/FixedCollapse';
-import type { GroupSchemeName, Scheme } from '@/tools/declares';
+import type { GroupSchemeName, Scheme, SchemePageConfig } from '@/tools/declares';
 import SchemeItemCard from '@/components/SchemeItemCard.vue';
 import globalEmmiter from '@/tools/GlobalEventBus';
 import { deepClone, getGroupColor, groupedSchemeListToGroupSchemeNames, groupSchemeList, simplifySchemeList, throttle } from '@/tools/tools';
@@ -16,14 +16,10 @@ import ImportSchemeDialog from '@/components/ImportSchemeDialog.vue';
 import VersionDialog from '@/components/VersionDialog.vue';
 
 
-const config = ref<{
-    showHiddenGroup: boolean,
-    currentCollapseVal: string,
-    collapseAccordion: boolean,
-    hiddenUnStar: boolean,
-}>(JSON.parse(localStorage.getItem('store.schemeManagement') || '{}'));
+const config = ref<SchemePageConfig>(JSON.parse(localStorage.getItem('store.schemeManagement') || '{}'));
 watch(config, (newVal, oldVal) => {
     localStorage.setItem('store.schemeManagement', JSON.stringify(newVal));
+    globalEmmiter.emit('Event.SchemeManagementPage.configUpdate', newVal);
 }, { deep: true });
 watch(() => config.value.collapseAccordion, (newVal) => {
     nextTick(() => {
@@ -289,6 +285,7 @@ const searchInputEvent = throttle((prev?: boolean, flag?: boolean) => {
                         <el-checkbox v-model="config.hiddenUnStar" label="隐藏未收藏的方案" size="small" style="width: 100%" />
                         <el-checkbox v-model="config.collapseAccordion" label="手风琴模式" size="small"
                             style="width: 100%" />
+                        <el-checkbox v-model="config.scrollSettle" label="常驻滚动条" size="small" style="width: 100%" />
                     </template>
                 </el-popover>
             </span>

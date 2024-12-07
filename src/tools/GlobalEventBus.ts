@@ -1,5 +1,5 @@
 import mitt from 'mitt';
-import type { GroupSchemeName, Scheme } from './declares';
+import type { GroupSchemeName, Scheme, SchemePageConfig } from './declares';
 
 type Events = {
     // scheme卡片的操作事件，主要用于通知其它模块如方案管理页对展示数据进行更新
@@ -12,6 +12,7 @@ type Events = {
         targetScheme: Scheme,
         groupSchemeNames: GroupSchemeName[],
     },
+    'Event.SchemeManagementPage.configUpdate': SchemePageConfig, // 配置更新事件
 };
 
 const emitter = mitt<Events>();
