@@ -233,16 +233,19 @@ const lazyModeBtnClickEvent = async () => {
                             </el-text>
                         </div>
                         <div><el-text size="small" type="info">{{ item.desc }}</el-text></div>
-                        <div><el-text size="small" type="info">上次执行开始时间：{{ toStdFormatDateStr(item.lastRunTime)
-                                }}</el-text></div>
-                        <div><el-text size="small" type="info">上次执行结束时间：{{ toStdFormatDateStr(item.lastStopTime)
-                                }}</el-text></div>
-                        <div><el-text size="small" type="info">下次执行时间：{{ toStdFormatDateStr(item.nextDate) }}({{ bueatifyTime(item.nextDate) }})</el-text>
+                        <div style="display: flex; align-items: center;">
+                            <el-text size="small" type="info" style="min-width: 250px;">
+                                上次执行开始时间：{{ toStdFormatDateStr(item.lastRunTime) }}
+                            </el-text>
+                            <el-text size="small" type="info" style="min-width: 250px;">
+                                上次执行结束时间：{{ toStdFormatDateStr(item.lastStopTime) }}
+                            </el-text>
+                            <el-text size="small" type="info">下次执行时间：{{ toStdFormatDateStr(item.nextDate) }}({{
+                                bueatifyTime(item.nextDate) }})</el-text>
                         </div>
                     </div>
                 </template>
                 <template #header-icon-left>
-
                     <div style="display: flex;">
                         <div class="operation-box">
                             <el-popover placement="left" :width="80" :hide-after="0" :auto-close="2000" trigger="click"
