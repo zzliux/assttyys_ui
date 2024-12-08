@@ -16,6 +16,7 @@
     "@types/web": "^0.0.153",
     "element-plus": "^2.8.2",
     "mitt": "^3.0.1",
+    "pinyin-pro": "^3.26.0",
     "vite-plugin-singlefile": "^2.0.2",
     "vue": "^3.4.36",
     "vue-router": "^4.4.2"

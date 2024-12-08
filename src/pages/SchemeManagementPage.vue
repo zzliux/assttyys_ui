@@ -14,6 +14,7 @@ import type { onConfirmOption } from '@/components/SchemeEditDialog';
 import draggable from '@marshallswain/vuedraggable';
 import ImportSchemeDialog from '@/components/ImportSchemeDialog.vue';
 import VersionDialog from '@/components/VersionDialog.vue';
+import { pinyin } from "pinyin-pro";
 
 
 const config = ref<SchemePageConfig>(JSON.parse(localStorage.getItem('store.schemeManagement') || '{}'));
@@ -132,12 +133,12 @@ onMounted(async () => {
 
 
 
-    
+
     const userInfo = sessionStorage.getItem('userInfo');
     if (!userInfo) return;
     const webloaded = sessionStorage.getItem('webloaded');
     if (webloaded) return;
-    
+
     await AutoWeb.autoPromise('webloaded');
     sessionStorage.setItem('webloaded', 'true');
     versionDialogRef.value.open(true);
@@ -183,9 +184,10 @@ const serchKeyEvent = (e: KeyboardEvent) => {
 }
 
 // 返回是否能用str2搜索str1，目前仅考虑str1.includes(str2)
-// 后续可能会考虑pinyin/pinyin首字母
 const strIncludeLike = (str1: string, str2: string) => {
-    return str1.includes(str2);
+    const sflagPinyin = getPinyin(str1.toLowerCase());  // 获取拼音
+    const searchPinyin = getPinyin(str2.toLowerCase());  // 获取输入拼音
+    return sflagPinyin.includes(searchPinyin) || str1.includes(str2);
 }
 
 /**
@@ -243,14 +245,21 @@ const searchInputEvent = throttle((prev?: boolean, flag?: boolean) => {
     }
     if (!targetEle) return;
 
-    targetEle.parentElement.parentElement.style.backgroundColor = '#eee8aa'
+    targetEle.parentElement.parentElement.style.backgroundColor = '#add8e6'
     setTimeout(() => {
         targetEle.scrollIntoView({
-            behavior: "smooth",
+            behavior: "auto",
             block: "center",
         });
-    }, 200)
+    })
 }, 20)
+
+const getPinyin = (str: string): string => {
+    return pinyin(str, {
+        toneType: 'none',  // 不带声调
+        type: 'array'      // 返回拼音数组
+    }).join('');
+}
 
 
 </script>
@@ -258,10 +267,9 @@ const searchInputEvent = throttle((prev?: boolean, flag?: boolean) => {
 <template>
     <Nav name="方案管理">
         <template #extra>
-            <el-input class="search-box" v-model="searchStr" size="small"
-                :style="{ width: searchInputShown ? '120px' : '34px' }" placeholder="请输入关键字" :suffix-icon="Search"
-                @focus="searchInputShown = true" @blur="searchInputShown = false" @keyup="serchKeyEvent"
-                @input="searchInputEvent(false)" />
+            <el-input class="search-box" v-model="searchStr" size="small" :style="{ width: '110px' }"
+                placeholder="请输入关键字" :prefix-icon="Search" @focus="searchInputShown = true"
+                @blur="searchInputShown = false" @keyup="serchKeyEvent" @input="searchInputEvent(false)" />
             <el-button link @click="switchExportMode">
                 <el-icon>
                     <Expand />
@@ -354,14 +362,20 @@ const searchInputEvent = throttle((prev?: boolean, flag?: boolean) => {
         </FixedCollapse>
         <SchemeEditDialog v-if="newSchemeEditDialogShown" v-model="newSchemeEditDialogShown" :scheme="newScheme"
             @confirm="addSchemeConfirmEvent" type="add" />
-        <div v-if="exportMode" style="position: fixed; right: 10px; bottom: 10px; z-index: 1;">
-            <el-button type="primary" @click="exportBtnEvent" size="small">导出</el-button>
+        <div v-if="exportMode" style="position: fixed; right: 16px; bottom: 16px; z-index: 1;">
+            <el-button type="primary" @click="exportBtnEvent" size="medium">导出</el-button>
         </div>
-        <el-dialog v-model="exportDialogShown" align-center width="70%">
+        
+        <el-dialog v-model="exportDialogShown" align-center width="70%":show-close="false">
             <el-input @focus="($event: FocusEvent) => ($event.currentTarget as HTMLInputElement).select()"
-                style="height: 50vh" size="small" type="textarea" v-model="exportDialogStr" />
-            <el-button type="primary" size="small" style="position: absolute; right: 0; bottom: 0;"
+                style="height: 50vh" size="medium" type="textarea" v-model="exportDialogStr" />
+            <el-button type="primary" size="medium" style="position: absolute; right: 16px; bottom: 16px;"
                 @click="AutoWeb.autoPromise('copyToClip', exportDialogStr)">复制</el-button>
+                <div style="position: absolute; right: 28px; top: 5px; font-size: 20px;">
+            <el-icon style="color: black;" @click="exportDialogShown = false">
+                <Close />
+            </el-icon>
+        </div>
         </el-dialog>
         <ImportSchemeDialog v-model="importDialogShown" />
         <VersionDialog ref="versionDialogRef" />
@@ -428,10 +442,6 @@ const searchInputEvent = throttle((prev?: boolean, flag?: boolean) => {
 
 .drag-group-handle {
     margin-right: 10px;
-}
-
-::v-deep(.el-input.search-box) {
-    transition: width .2s ease-in-out;
 }
 
 ::v-deep(.el-input__wrapper) {

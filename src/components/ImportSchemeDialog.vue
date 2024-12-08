@@ -4,12 +4,14 @@ import type { Scheme } from '@/tools/declares';
 import { ElMessage } from 'element-plus';
 import globalEmmiter from '@/tools/GlobalEventBus';
 import { ref } from 'vue';
+import { Close } from '@element-plus/icons-vue';
 
 const $model = defineModel<boolean>();
 const importDialogStr = ref<string>('')
 const importSchemeList = ref<Scheme[]>([])
 const importSelectDialogShown = ref<boolean>(false)
 const tableRef = ref();
+
 
 const pasteBtnEvent = async () => {
     importDialogStr.value = await AutoWeb.autoPromise('getClip');
@@ -59,12 +61,17 @@ const improtBtnEvent = async () => {
 </script>
 
 <template>
-    <el-dialog v-model="$model" align-center width="70%">
+    <el-dialog v-model="$model" align-center width="70%" :show-close="false">
         <el-input @focus="($event: FocusEvent) => ($event.currentTarget as HTMLInputElement).select()"
             style="height: 50vh" size="small" type="textarea" v-model="importDialogStr" />
-        <div style="position: absolute; right: 0; bottom: 0;">
-            <el-button type="warning" size="small" @click="pasteBtnEvent">粘贴</el-button>
-            <el-button type="primary" size="small" @click="parseBtnEvent">解析</el-button>
+        <div style="position: absolute; right: 16px; bottom: 16px;">
+            <el-button type="warning" size="medium" @click="pasteBtnEvent">粘贴</el-button>
+            <el-button type="primary" size="medium" @click="parseBtnEvent">解析</el-button>
+        </div>
+        <div style="position: absolute; right: 28px; top: 5px; font-size: 20px;">
+            <el-icon style="color: black;" @click="$model = false">
+                <Close />
+            </el-icon>
         </div>
     </el-dialog>
     <el-dialog class="import-scheme-dialog" v-model="importSelectDialogShown" height="100%" width="100%" fullscreen>
@@ -74,8 +81,8 @@ const improtBtnEvent = async () => {
             <el-table-column prop="schemeName" label="方案名" />
             <el-table-column prop="groupNames" label="分组" />
         </el-table>
-        <div style="position: absolute; right: 0; bottom: 0;">
-            <el-button type="primary" size="small" @click="improtBtnEvent">导入</el-button>
+        <div style="position: absolute; right: 16px; bottom: 16px;">
+            <el-button type="primary" size="large" @click="improtBtnEvent">导入</el-button>
         </div>
     </el-dialog>
 </template>
