@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { onBeforeUnmount, computed, onMounted, ref } from "vue";
 import Nav from "../components/Nav.vue";
 import type { CommonConfigItem, Func, FuncView, GroupSchemeName, Scheme } from "@/tools/declares";
 import { useRoute } from "vue-router";
@@ -7,9 +7,9 @@ import { AutoWeb } from "@/tools/AutoWeb";
 import { deepClone, throttle } from "@/tools/tools";
 import { FixedCollapse, FixedCollapseItem } from "@/components/FixedCollapse";
 import draggable from '@marshallswain/vuedraggable';
-import { Sort, Setting, Wallet, Promotion, Search } from '@element-plus/icons-vue';
+import { Sort, Setting, Wallet, Promotion, Search, Top } from '@element-plus/icons-vue';
 import { ElMessage } from "element-plus";
-
+import { pinyin } from "pinyin-pro";
 const $route = useRoute();
 const groupSchemeNames = ref<GroupSchemeName[]>();
 let defaultFuncList: Func[] = [];
@@ -25,7 +25,6 @@ const dragOptions = computed({
     set(val) { }
 });
 const commonConfigDialogShown = ref<boolean>(false);
-
 
 onMounted(async () => {
     defaultFuncList = await AutoWeb.autoPromise('getFuncList');
@@ -162,9 +161,11 @@ const serchKeyEvent = (e: KeyboardEvent) => {
 }
 
 // 返回是否能用str2搜索str1，目前仅考虑str1.includes(str2)
-// 后续可能会考虑pinyin/pinyin首字母
+
 const strIncludeLike = (str1: string, str2: string) => {
-    return str1.includes(str2);
+    const sflagPinyin = getPinyin(str1.toLowerCase());  // 获取拼音
+    const searchPinyin = getPinyin(str2.toLowerCase());  // 获取输入拼音
+    return sflagPinyin.includes(searchPinyin) || str1.includes(str2);
 }
 
 const searchInputEvent = throttle((prev?: boolean, flag?: boolean) => {
@@ -180,34 +181,53 @@ const searchInputEvent = throttle((prev?: boolean, flag?: boolean) => {
             eleHi.push(ele);
         }
     }
-    
+
     if (flag) {
         currentHighLightIndex.value = (currentHighLightIndex.value + (prev ? eleHi.length - 1 : 1)) % eleHi.length;
     } else {
         currentHighLightIndex.value = 0;
     }
     const targetEle = eleHi[currentHighLightIndex.value];
-    targetEle.parentElement.parentElement.parentElement.style.backgroundColor = '#eee8aa'
+    targetEle.parentElement.parentElement.parentElement.style.backgroundColor = '#add8e6'
     targetEle.scrollIntoView({
-        behavior: "smooth",
+        behavior: "auto",
         block: "center",
     });
 }, 20)
 
+const getPinyin = (str: string): string => {
+    return pinyin(str, {
+        toneType: 'none',  // 不带声调
+        type: 'array'      // 返回拼音数组
+    }).join('');
+}
 
+const scrollToTop = () => {
+    const firstElement = document.querySelector('[sflag]');
+    if (firstElement) {
+        firstElement.scrollIntoView({ behavior: 'auto', block: 'start' });
+    }
+}
 
 </script>
 <template>
     <Nav :name="`功能管理：${$route.query.schemeName}`">
         <template #extra>
-            <el-input class="search-box" v-model="searchStr" size="small"
-                :style="{ width: searchInputShown ? '120px' : '34px' }" placeholder="请输入关键字" :suffix-icon="Search"
-                @focus="searchInputShown = true" @blur="searchInputShown = false" @keyup="serchKeyEvent"
-                @input="searchInputEvent(false)" />
             <span style="margin-right: 10px">
-                <el-button link @click="commonConfigDialogShown = true"><el-icon>
+                <el-button link @click="scrollToTop()">
+                    <el-icon>
+                        <Top />
+                    </el-icon>
+                </el-button>
+            </span>
+            <el-input class="search-box" v-model="searchStr" size="small" :style="{ width: '110px' }"
+                placeholder="请输入关键字" :prefix-icon="Search" @input="searchInputEvent(false)" @keyup="serchKeyEvent" />
+            <span style="margin-right: 10px">
+                <el-button link @click="commonConfigDialogShown = true">
+                    <el-icon>
                         <Setting />
-                    </el-icon></el-button>
+                    </el-icon>
+                </el-button>
             </span>
         </template>
     </Nav>
@@ -280,10 +300,10 @@ const searchInputEvent = throttle((prev?: boolean, flag?: boolean) => {
             </draggable>
         </FixedCollapse>
         <div style="position: fixed; right: 10px; bottom: 10px; z-index: 1;">
-            <el-button style="padding: 10px 10px;" type="primary" @click="saveScheme" size="small"><el-icon>
+            <el-button style="font-size: 16px; height: 42px;" type="primary" @click="saveScheme" size="small"><el-icon>
                     <Wallet />
                 </el-icon>&nbsp;保存</el-button>
-            <el-button style="padding: 10px 10px; margin-left: 5px" type="warning" @click="runScheme"
+            <el-button style="font-size: 16px; height: 42px; margin-left: 15px" type="warning" @click="runScheme"
                 size="small"><el-icon>
                     <Promotion />
                 </el-icon>&nbsp;启动</el-button>
@@ -312,7 +332,7 @@ const searchInputEvent = throttle((prev?: boolean, flag?: boolean) => {
 .form-container {
     width: 100%;
     padding: 5px 10px;
-    /* max-height: 300px; */
+    max-height: 300px;
     overflow: auto;
 }
 

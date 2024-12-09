@@ -181,14 +181,14 @@ export const toStdFormatDateStr = function (date: Date | string): string {
         throw new Error('Invalid date');
     }
 
-    const year = parsedDate.getFullYear();
+    const year = parsedDate.getFullYear() - 2000;
     const month = String(parsedDate.getMonth() + 1).padStart(2, '0'); // 月份从0开始，所以加1
     const day = String(parsedDate.getDate()).padStart(2, '0');
     const hours = String(parsedDate.getHours()).padStart(2, '0');
     const minutes = String(parsedDate.getMinutes()).padStart(2, '0');
     const seconds = String(parsedDate.getSeconds()).padStart(2, '0');
 
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
 };
 
 function getSingleDefaultConfig(func: Func) {
@@ -281,7 +281,7 @@ export function bueatifyTime(date: Date | string): string {
     const h = Math.floor((absMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const m = Math.floor((absMs % (1000 * 60 * 60)) / (1000 * 60));
     const s = Math.floor((absMs % (1000 * 60)) / 1000);
-    
+
     let str = '';
     if (d) str += `${d}天`;
     if (h) str += `${h}时`;
