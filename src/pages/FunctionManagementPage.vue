@@ -302,7 +302,7 @@ const scrollToTop = () => {
             </draggable>
         </FixedCollapse>
         <div style="position: fixed; right: 10px; bottom: 10px; z-index: 1;">
-            <el-button style="font-size: 16px; height: 42px;" type="primary" @click="saveScheme" size="small"><el-icon>
+            <el-button style="font-size: 16px; height: 42px;" type="primary" @click="saveScheme()" size="small"><el-icon>
                     <Wallet />
                 </el-icon>&nbsp;保存</el-button>
             <el-button style="font-size: 16px; height: 42px; margin-left: 15px" type="warning" @click="runScheme"
