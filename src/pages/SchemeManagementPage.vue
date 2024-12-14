@@ -267,9 +267,10 @@ const getPinyin = (str: string): string => {
 <template>
     <Nav name="方案管理">
         <template #extra>
-            <el-input class="search-box" v-model="searchStr" size="small" :style="{ width: '110px' }"
-                placeholder="请输入关键字" :prefix-icon="Search" @focus="searchInputShown = true"
-                @blur="searchInputShown = false" @keyup="serchKeyEvent" @input="searchInputEvent(false)" />
+            <el-input class="search-box" v-model="searchStr" size="small"
+                :style="{ width: searchInputShown ? '110px' : '24px' }" placeholder="请输入关键字" :prefix-icon="Search"
+                @focus="searchInputShown = true" @blur="searchInputShown = false" @keyup="serchKeyEvent"
+                @input="searchInputEvent(false)" />
             <el-button link @click="switchExportMode">
                 <el-icon>
                     <Expand />
@@ -365,17 +366,17 @@ const getPinyin = (str: string): string => {
         <div v-if="exportMode" style="position: fixed; right: 16px; bottom: 16px; z-index: 1;">
             <el-button type="primary" @click="exportBtnEvent" size="medium">导出</el-button>
         </div>
-        
-        <el-dialog v-model="exportDialogShown" align-center width="70%":show-close="false">
+
+        <el-dialog v-model="exportDialogShown" align-center width="70%" :show-close="false">
             <el-input @focus="($event: FocusEvent) => ($event.currentTarget as HTMLInputElement).select()"
                 style="height: 50vh" size="medium" type="textarea" v-model="exportDialogStr" />
             <el-button type="primary" size="medium" style="position: absolute; right: 16px; bottom: 16px;"
                 @click="AutoWeb.autoPromise('copyToClip', exportDialogStr)">复制</el-button>
-                <div style="position: absolute; right: 28px; top: 5px; font-size: 20px;">
-            <el-icon style="color: black;" @click="exportDialogShown = false">
-                <Close />
-            </el-icon>
-        </div>
+            <div style="position: absolute; right: 28px; top: 5px; font-size: 20px;">
+                <el-icon style="color: black;" @click="exportDialogShown = false">
+                    <Close />
+                </el-icon>
+            </div>
         </el-dialog>
         <ImportSchemeDialog v-model="importDialogShown" />
         <VersionDialog ref="versionDialogRef" />
@@ -444,11 +445,13 @@ const getPinyin = (str: string): string => {
     margin-right: 10px;
 }
 
+::v-deep(.el-input.search-box) {
+    transition: width .2s ease-in-out;
+}
 ::v-deep(.el-input__wrapper) {
     border: none !important;
 }
-
-::v-deep(.el-input__suffix) {
+::v-deep(.el-input__prefix) {
     color: inherit;
 }
 </style>

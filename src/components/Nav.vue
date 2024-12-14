@@ -60,4 +60,12 @@ onMounted(async () => {
     padding-top: 10px;
     padding-bottom: 10px
 }
+.el-page-header__left {
+    margin-right: 80px;
+}
+.el-page-header__extra {
+    position: absolute;
+    right: 0;
+    background: white;
+}
 </style>

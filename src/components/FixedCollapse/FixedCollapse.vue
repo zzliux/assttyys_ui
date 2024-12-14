@@ -98,7 +98,7 @@ onUnmounted(() => {
 
 .scroll-settle::-webkit-scrollbar {
     width: 10px;
-    height: 20px;
+    height: 10px;
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;
