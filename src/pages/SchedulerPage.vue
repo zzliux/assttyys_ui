@@ -233,15 +233,14 @@ const lazyModeBtnClickEvent = async () => {
                             </el-text>
                         </div>
                         <div><el-text size="small" type="info">{{ item.desc }}</el-text></div>
-                        <div style="display: flex; align-items: center;">
-                            <el-text size="small" type="info" style="min-width: 250px;">
-                                上次执行开始时间：{{ toStdFormatDateStr(item.lastRunTime) }}
-                            </el-text>
-                            <el-text size="small" type="info" style="min-width: 250px;">
-                                上次执行结束时间：{{ toStdFormatDateStr(item.lastStopTime) }}
-                            </el-text>
-                            <el-text size="small" type="info">下次执行时间：{{ toStdFormatDateStr(item.nextDate) }}({{
-                                bueatifyTime(item.nextDate) }})</el-text>
+                        <div class="times-region">
+                            <div class="times-item" v-if="item.lastRunTime"><el-text size="small" type="info">上次执行开始时间：{{ toStdFormatDateStr(item.lastRunTime)
+                                    }}</el-text></div>
+                            <div class="times-item" v-if="item.lastStopTime"><el-text size="small" type="info">上次执行结束时间：{{ toStdFormatDateStr(item.lastStopTime)
+                                    }}</el-text></div>
+                            <div class="times-item" v-if="item.nextDate"><el-text size="small" type="info">下次执行时间：{{ toStdFormatDateStr(item.nextDate) }}({{
+                                    bueatifyTime(item.nextDate) }})</el-text>
+                            </div>
                         </div>
                     </div>
                 </template>
@@ -359,6 +358,14 @@ const lazyModeBtnClickEvent = async () => {
     width: 100%;
     padding: 5px 10px;
 
+}
+.times-region {
+    display: flex;
+    flex-wrap: wrap
+}
+.times-item {
+    display: flex;
+    margin-right: 20px;
 }
 </style>
 <style>

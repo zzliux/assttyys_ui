@@ -213,15 +213,17 @@ const scrollToTop = () => {
 <template>
     <Nav :name="`功能管理：${$route.query.schemeName}`">
         <template #extra>
-            <span style="margin-right: 10px">
+            <span>
                 <el-button link @click="scrollToTop()">
                     <el-icon>
                         <Top />
                     </el-icon>
                 </el-button>
             </span>
-            <el-input class="search-box" v-model="searchStr" size="small" :style="{ width: '110px' }"
-                placeholder="请输入关键字" :prefix-icon="Search" @input="searchInputEvent(false)" @keyup="serchKeyEvent" />
+            <el-input class="search-box" v-model="searchStr" size="small"
+                :style="{ width: searchInputShown ? '110px' : '24px' }" placeholder="请输入关键字" :prefix-icon="Search"
+                @focus="searchInputShown = true" @blur="searchInputShown = false" @keyup="serchKeyEvent"
+                @input="searchInputEvent(false)" />
             <span style="margin-right: 10px">
                 <el-button link @click="commonConfigDialogShown = true">
                     <el-icon>
@@ -300,7 +302,7 @@ const scrollToTop = () => {
             </draggable>
         </FixedCollapse>
         <div style="position: fixed; right: 10px; bottom: 10px; z-index: 1;">
-            <el-button style="font-size: 16px; height: 42px;" type="primary" @click="saveScheme" size="small"><el-icon>
+            <el-button style="font-size: 16px; height: 42px;" type="primary" @click="saveScheme()" size="small"><el-icon>
                     <Wallet />
                 </el-icon>&nbsp;保存</el-button>
             <el-button style="font-size: 16px; height: 42px; margin-left: 15px" type="warning" @click="runScheme"
@@ -356,7 +358,7 @@ const scrollToTop = () => {
     border: none !important;
 }
 
-::v-deep(.el-input__suffix) {
+::v-deep(.el-input__prefix) {
     color: inherit;
 }
 </style>
