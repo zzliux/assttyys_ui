@@ -101,7 +101,7 @@ const logout = () => {
         <FloatyListRefDialog ref="FloatyListRefDialogRef" />
         <div class="item-container" @click.stop="FloatyListRefDialogRef.open()">
             <div class="item-header">
-                <span class="item-header-text"><el-text size=small>悬浮窗按钮显示隐藏</el-text></span>
+                <span class="item-header-text"><el-text size=small>自选悬浮窗按钮显示</el-text></span>
             </div>
         </div>
         <AppListRefDialog ref="appListRefDialogRef" />
