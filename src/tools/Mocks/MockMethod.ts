@@ -1,4 +1,4 @@
-import { type AutoWebTypes, type GroupSchemeName, type JobOptions, type PackageInfo, type Scheme } from '../declares';
+import { type AutoWebTypes, type GroupSchemeName, type JobOptions, type PackageInfo, type floatyInfo, type Scheme } from '../declares';
 import store, { storeCommon } from './store';
 import SchemeList from './initDatas/SchemeList';
 import ScheduleDefaultList from './initDatas/ScheduleList';
@@ -356,7 +356,23 @@ export const MockMethod: {
     openURL: (url: string) => {
         window.open(url);
     },
-    startScript: () => {}
+    startScript: () => {},
+    getToFloat: (): floatyInfo[] => {
+        return [{
+            floatyName: '截图图标',
+            referred: true
+        }, {
+            floatyName: '定时图标',
+            referred: true
+        }, {
+            floatyName: '日志图标',
+            referred: false
+        }]
+    },
+    saveToFloat: (packageNames: string[]) => {
+        // TODO
+        return { error: 0, message: 'success' };
+    },
 };
 
 export default MockMethod;

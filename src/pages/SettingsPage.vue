@@ -7,10 +7,12 @@ import type { SettingItem } from '@/tools/declares';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { h, onMounted, ref } from 'vue';
 import router from './router';
+import FloatyListRefDialog from '@/components/FloatyListRefDialog.vue';
 
 
 const settingList = ref<SettingItem[]>();
 const appListRefDialogRef = ref<InstanceType<typeof AppListRefDialog>>();
+const FloatyListRefDialogRef = ref<InstanceType<typeof FloatyListRefDialog>>();
 const versionDialogRef = ref<InstanceType<typeof VersionDialog>>();
 const appVersion = ref<string>('');
 
@@ -94,6 +96,12 @@ const logout = () => {
                     <el-input v-else-if="item.stype === 'text'" v-model="item.value" :size="'small'"
                         @blur="itemChangeEvent(item)" />
                 </span>
+            </div>
+        </div>
+        <FloatyListRefDialog ref="FloatyListRefDialogRef" />
+        <div class="item-container" @click.stop="FloatyListRefDialogRef.open()">
+            <div class="item-header">
+                <span class="item-header-text"><el-text size=small>悬浮窗按钮显示隐藏</el-text></span>
             </div>
         </div>
         <AppListRefDialog ref="appListRefDialogRef" />

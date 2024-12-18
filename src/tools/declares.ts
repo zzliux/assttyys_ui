@@ -118,6 +118,10 @@ export type PackageInfo = {
     versionCode: number, // 获取应用版本号
     referred: boolean, // 是否关联
 }
+export type floatyInfo = {
+    floatyName: string,
+    referred: boolean, // 是否关联
+}
 
 export type JobOptions = {
     id?: number;
@@ -281,5 +285,13 @@ export type AutoWebTypes = {
     startScript: {
         param: void,
         result: void
+    },
+    getToFloat: {
+        param: void,
+        result: floatyInfo[]
+    },
+    saveToFloat: {
+        param: string[],
+        result: Result
     },
 }
