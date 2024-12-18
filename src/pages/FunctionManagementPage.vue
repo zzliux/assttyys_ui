@@ -159,7 +159,11 @@ const serchKeyEvent = (e: KeyboardEvent) => {
     if (e.key !== 'Enter') return;
     searchInputEvent(e.shiftKey, true);
 }
-
+const handleKeydown = (e: KeyboardEvent): void => {
+    if (e.key !== ' ') return;
+    searchInputEvent(e.shiftKey, true);
+    e.preventDefault();
+};
 // 返回是否能用str2搜索str1，目前仅考虑str1.includes(str2)
 
 const strIncludeLike = (str1: string, str2: string) => {
@@ -222,8 +226,8 @@ const scrollToTop = () => {
             </span>
             <el-input class="search-box" v-model="searchStr" size="small"
                 :style="{ width: searchInputShown ? '110px' : '24px' }" placeholder="请输入关键字" :prefix-icon="Search"
-                @focus="searchInputShown = true" @blur="searchInputShown = false" @keyup="serchKeyEvent"
-                @input="searchInputEvent(false)" />
+                @focus="searchInputShown = true" @blur="searchInputShown = false" @keydown="handleKeydown"
+                @keyup="serchKeyEvent" @input="searchInputEvent(false)" />
             <span style="margin-right: 10px">
                 <el-button link @click="commonConfigDialogShown = true">
                     <el-icon>
@@ -302,7 +306,8 @@ const scrollToTop = () => {
             </draggable>
         </FixedCollapse>
         <div style="position: fixed; right: 10px; bottom: 10px; z-index: 1;">
-            <el-button style="font-size: 16px; height: 42px;" type="primary" @click="saveScheme()" size="small"><el-icon>
+            <el-button style="font-size: 16px; height: 42px;" type="primary" @click="saveScheme()"
+                size="small"><el-icon>
                     <Wallet />
                 </el-icon>&nbsp;保存</el-button>
             <el-button style="font-size: 16px; height: 42px; margin-left: 15px" type="warning" @click="runScheme"

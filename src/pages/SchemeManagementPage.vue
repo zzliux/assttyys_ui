@@ -182,6 +182,11 @@ const serchKeyEvent = (e: KeyboardEvent) => {
     if (e.key !== 'Enter') return;
     searchInputEvent(e.shiftKey, true);
 }
+const handleKeydown = (e: KeyboardEvent): void => {
+    if (e.key !== ' ') return;
+    searchInputEvent(e.shiftKey, true);
+    e.preventDefault();
+};
 
 // 返回是否能用str2搜索str1，目前仅考虑str1.includes(str2)
 const strIncludeLike = (str1: string, str2: string) => {
@@ -269,8 +274,8 @@ const getPinyin = (str: string): string => {
         <template #extra>
             <el-input class="search-box" v-model="searchStr" size="small"
                 :style="{ width: searchInputShown ? '110px' : '24px' }" placeholder="请输入关键字" :prefix-icon="Search"
-                @focus="searchInputShown = true" @blur="searchInputShown = false" @keyup="serchKeyEvent"
-                @input="searchInputEvent(false)" />
+                @focus="searchInputShown = true" @blur="searchInputShown = false" @keydown="handleKeydown"
+                @keyup="serchKeyEvent" @input="searchInputEvent(false)" />
             <el-button link @click="switchExportMode">
                 <el-icon>
                     <Expand />
@@ -448,9 +453,11 @@ const getPinyin = (str: string): string => {
 ::v-deep(.el-input.search-box) {
     transition: width .2s ease-in-out;
 }
+
 ::v-deep(.el-input__wrapper) {
     border: none !important;
 }
+
 ::v-deep(.el-input__prefix) {
     color: inherit;
 }
