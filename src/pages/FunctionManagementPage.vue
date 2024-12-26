@@ -31,13 +31,13 @@ onMounted(async () => {
     groupSchemeNames.value = [
         { groupName: '__内置方案__', hidden: false, schemeNames: ['__停止脚本__', '__返回上个方案__'] }
         , ...await AutoWeb.autoPromise('getGroupSchemeNames')];
-    commonConfig.value = await AutoWeb.autoPromise('getCommonConfig');
+    commonConfigDefine.value = await AutoWeb.autoPromise('getCommonConfig');
     await loadData();
 });
 
 const schemeOld = ref<Scheme>();
 const scheme = ref<Scheme>();
-const commonConfig = ref<CommonConfigItem[]>();
+const commonConfigDefine = ref<CommonConfigItem[]>();
 const funcList = ref<FuncView[]>([]);
 
 // 修改为在loaddata中手动更新变化，而不是监听数据变化
@@ -69,7 +69,7 @@ const watchSchemeEvent = (newScheme: Scheme) => {
             enabled: newScheme.list.includes(func.id),
         }
     });
-    commonConfig.value.forEach(group => {
+    commonConfigDefine.value.forEach(group => {
         group.config?.forEach(configItem => {
             if (typeof newScheme.commonConfig?.[configItem.name] !== 'undefined') {
                 configItem.value = newScheme.commonConfig?.[configItem.name] as number;
@@ -97,7 +97,7 @@ const reSort = () => {
 
 // TODO 1. 监听commonConfig变化反向更新
 const commonConfigChangeEvent = () => {
-    commonConfig.value.forEach(group => {
+    commonConfigDefine.value.forEach(group => {
         group.config?.forEach(configItem => {
             scheme.value.commonConfig[configItem.name] = configItem.value
         });
@@ -317,7 +317,7 @@ const scrollToTop = () => {
         </div>
     </div>
     <el-dialog v-model="commonConfigDialogShown" align-center>
-        <el-form size="small" v-for="group in commonConfig">
+        <el-form size="small" v-for="group in commonConfigDefine">
             <el-form-item v-for="configItem in group.config" :key="configItem.name" :label="configItem.desc">
                 <el-input v-if="configItem.type === 'integer'" type="number" v-model="configItem.value"
                     @change="commonConfigChangeEvent" />
@@ -355,15 +355,16 @@ const scrollToTop = () => {
 }
 
 
-::v-deep(.el-input.search-box) {
-    transition: width .2s ease-in-out;
+::v-deep(.el-page-header__extra .el-input.search-box) {
+    transition: width .1s ease-in-out;
 }
-
-::v-deep(.el-input__wrapper) {
+::v-deep(.el-page-header__extra .el-input__wrapper) {
     border: none !important;
 }
-
-::v-deep(.el-input__prefix) {
+::v-deep(.el-page-header__extra .el-input__wrapper.is-focus) {
+    border-bottom: 1px solid var(--el-color-primary) !important;
+}
+::v-deep(.el-page-header__extra .el-input__prefix) {
     color: inherit;
 }
 </style>

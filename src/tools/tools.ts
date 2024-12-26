@@ -206,7 +206,7 @@ function getSingleDefaultConfig(func: Func) {
     return null;
 }
 
-async function getCommonConfig() {
+export async function getCommonConfig() {
     const defaultCommonConfig = await AutoWeb.autoPromise('getCommonConfig');
     const ret: { [key: string]: string | number | boolean } = {};
     for (let configGroup of defaultCommonConfig) {
