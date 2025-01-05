@@ -234,6 +234,10 @@ export async function simplifySchemeList(schemeList: Scheme[]) {
         // 删除默认功能配置
         for (let funcId in expScheme.config) {
             const defaultConfig = allDefaultConfig[funcId];
+            if (!defaultConfig) {
+                delete expScheme.config[funcId];
+                continue;
+            }
             let flag = true;
             for (let configKey in expScheme.config[funcId]) {
                 if (defaultConfig[configKey] == expScheme.config[funcId][configKey]) {
