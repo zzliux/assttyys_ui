@@ -1,8 +1,14 @@
 {
   "name": "assttyys_ui",
-  "version": "0.0.0",
-  "private": true,
-  "type": "module",
+  "version": "1.0.0",
+  "author": "zzliux",
+  "description": "assttyys的web ui，需引入本模块的index.html食用",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zzliux/assttyys_ui"
+  },
+  "main": "dist/index.html",
+  "homepage": "https://github.com/zzliux/assttyys_ui",
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
