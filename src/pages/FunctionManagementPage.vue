@@ -29,7 +29,7 @@ const commonConfigDialogShown = ref<boolean>(false);
 onMounted(async () => {
     defaultFuncList = await AutoWeb.autoPromise('getFuncList');
     groupSchemeNames.value = [
-        { groupName: '__内置方案__', hidden: false, schemeNames: ['__停止脚本__', '__返回上个方案__'] }
+        { groupName: '__内置方案__', hidden: false, schemeNames: ['__停止脚本__', '__返回上个方案__', '__关闭应用__', '__不做动作__'] }
         , ...await AutoWeb.autoPromise('getGroupSchemeNames')];
     commonConfigDefine.value = await AutoWeb.autoPromise('getCommonConfig');
     await loadData();
