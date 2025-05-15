@@ -272,7 +272,7 @@ const scrollToTop = () => {
                                 <div style="display: block; border-bottom: 1px solid #dcdfe6;"
                                     v-for="group in item.config">
                                     <div style="display: block;"><el-text size="small" type="info">{{ group.desc
-                                            }}</el-text>
+                                    }}</el-text>
                                     </div>
                                     <el-form-item v-for="configItem in group.config" :label="configItem.desc"
                                         size=small>
@@ -281,6 +281,14 @@ const scrollToTop = () => {
                                             <el-option v-for="dataItem in configItem.data" :key="dataItem"
                                                 :label="dataItem" :value="dataItem" />
                                         </el-select>
+                                         <el-select multiple @change="configChangeEvent(item)" v-if="configItem.type === 'lists'"
+                                            size="small" v-model="configItem.value">
+                                            <el-option v-for="dataItem in configItem.data" :key="dataItem"
+                                                :label="dataItem" :value="dataItem" />
+                                        </el-select>
+                                        <el-select multiple @input="configChangeEvent(item)"
+                                            v-else-if="configItem.type === 'lists' || configItem.type === 'number'"
+                                            v-model="configItem.value" />
                                         <el-switch @change="configChangeEvent(item)"
                                             v-else-if="configItem.type === 'switch'" v-model="configItem.value" />
                                         <el-input @input="configChangeEvent(item)"
@@ -358,12 +366,15 @@ const scrollToTop = () => {
 ::v-deep(.el-page-header__extra .el-input.search-box) {
     transition: width .1s ease-in-out;
 }
+
 ::v-deep(.el-page-header__extra .el-input__wrapper) {
     border: none !important;
 }
+
 ::v-deep(.el-page-header__extra .el-input__wrapper.is-focus) {
     border-bottom: 1px solid var(--el-color-primary) !important;
 }
+
 ::v-deep(.el-page-header__extra .el-input__prefix) {
     color: inherit;
 }
