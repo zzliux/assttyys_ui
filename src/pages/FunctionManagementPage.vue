@@ -281,6 +281,11 @@ const scrollToTop = () => {
                                             <el-option v-for="dataItem in configItem.data" :key="dataItem"
                                                 :label="dataItem" :value="dataItem" />
                                         </el-select>
+                                        <el-select multiple @change="configChangeEvent(item)"
+                                            v-if="configItem.type === 'lists'" size="small" v-model="configItem.value">
+                                            <el-option v-for="dataItem in configItem.data" :key="dataItem"
+                                                :label="dataItem" :value="dataItem" />
+                                        </el-select>
                                         <el-switch @change="configChangeEvent(item)"
                                             v-else-if="configItem.type === 'switch'" v-model="configItem.value" />
                                         <el-input @input="configChangeEvent(item)"
@@ -358,12 +363,15 @@ const scrollToTop = () => {
 ::v-deep(.el-page-header__extra .el-input.search-box) {
     transition: width .1s ease-in-out;
 }
+
 ::v-deep(.el-page-header__extra .el-input__wrapper) {
     border: none !important;
 }
+
 ::v-deep(.el-page-header__extra .el-input__wrapper.is-focus) {
     border-bottom: 1px solid var(--el-color-primary) !important;
 }
+
 ::v-deep(.el-page-header__extra .el-input__prefix) {
     color: inherit;
 }
