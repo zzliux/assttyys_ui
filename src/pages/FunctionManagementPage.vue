@@ -277,7 +277,6 @@ const handleCommand = (command: string) => {
             greenType.value = '自定义坐标';
         }
         enabledChangeEvent();
-        console.log(funcList.value)
     }
 }
 </script>
