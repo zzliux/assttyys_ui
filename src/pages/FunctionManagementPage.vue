@@ -7,7 +7,7 @@ import { AutoWeb } from "@/tools/AutoWeb";
 import { deepClone, throttle } from "@/tools/tools";
 import { FixedCollapse, FixedCollapseItem } from "@/components/FixedCollapse";
 import draggable from '@marshallswain/vuedraggable';
-import { Sort, Setting, Wallet, Promotion, Search, Top } from '@element-plus/icons-vue';
+import { Sort, Setting, Wallet, Promotion, Search, Top, CirclePlusFilled, } from '@element-plus/icons-vue';
 import { ElMessage } from "element-plus";
 import { pinyin } from "pinyin-pro";
 const $route = useRoute();
@@ -213,10 +213,91 @@ const scrollToTop = () => {
     }
 }
 
+const handleCommand = (command: string) => {
+    if (command === "inc_yuHun") {
+        funcList.value.find(i => i.id === 509).enabled = true;
+        funcList.value.find(i => i.id === 510).enabled = true;
+        funcList.value.find(i => i.id === 511).enabled = true;
+        funcList.value = [
+            ...funcList.value.filter(i => i.id === 511),
+            ...funcList.value.filter(i => i.id !== 511),
+        ];
+        funcList.value = [
+            ...funcList.value.filter(i => i.id === 510),
+            ...funcList.value.filter(i => i.id !== 510),
+        ];
+        funcList.value = [
+            ...funcList.value.filter(i => i.id === 509),
+            ...funcList.value.filter(i => i.id !== 509),
+        ];
+        enabledChangeEvent();
+    }
+    if (command === "inc_start") {
+        funcList.value.find(i => i.id === 993).enabled = true;
+        const scheme_switch_enabled = funcList.value
+            .find(i => i.id === 993)
+            ?.config?.[0]
+            ?.config
+            ?.find(i => i.name === 'scheme_switch_enabled');
+        if (scheme_switch_enabled) {
+            scheme_switch_enabled.value = false;
+        }
+        funcList.value.find(i => i.id === 993).config
+        funcList.value.find(i => i.id === 503).enabled = true;
+        const afterCountOper = funcList.value
+            .find(i => i.id === 503)
+            ?.config?.[0]
+            ?.config
+            ?.find(i => i.name === 'afterCountOper');
+        if (afterCountOper) {
+            afterCountOper.value = '不进行任何操作';
+        }
+        funcList.value = [
+            ...funcList.value.filter(i => i.id === 993),
+            ...funcList.value.filter(i => i.id !== 993),
+        ];
+        funcList.value = [
+            ...funcList.value.filter(i => i.id !== 503),
+            ...funcList.value.filter(i => i.id === 503),
+        ];
+        enabledChangeEvent();
+    }
+    if (command === "inc_lvBiao") {
+        funcList.value.find(i => i.id === 51).enabled = true;
+        funcList.value = [
+            ...funcList.value.filter(i => i.id === 51),
+            ...funcList.value.filter(i => i.id !== 51),
+        ];
+        const greenType = funcList.value
+            .find(i => i.id === 51)
+            ?.config?.[0]
+            ?.config
+            ?.find(i => i.name === 'greenType');
+        if (greenType) {
+            greenType.value = '自定义坐标';
+        }
+        enabledChangeEvent();
+        console.log(funcList.value)
+    }
+}
 </script>
 <template>
     <Nav :name="`功能管理：${$route.query.schemeName}`">
         <template #extra>
+            <el-dropdown @command="handleCommand">
+                <el-button text>
+                    <el-icon>
+                        <CirclePlusFilled />
+                    </el-icon>
+                </el-button>
+                <template #dropdown>
+                    <el-dropdown-menu>
+                        <el-dropdown-item command="inc_yuHun">添加更换式神御魂</el-dropdown-item>
+                        <el-dropdown-item command="inc_start">添加启动游戏</el-dropdown-item>
+                        <el-dropdown-item command="inc_lvBiao">添加绿标</el-dropdown-item>
+                    </el-dropdown-menu>
+                </template>
+            </el-dropdown>
             <span>
                 <el-button link @click="scrollToTop()">
                     <el-icon>
