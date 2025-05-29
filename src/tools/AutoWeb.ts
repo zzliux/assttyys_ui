@@ -55,7 +55,7 @@ export const AutoWeb = {
 
 
 // // 调试模式
-localStorage.setItem('debug', '1');
+// localStorage.setItem('debug', '1');
 if (localStorage.getItem('debug')) {
     (window as any)['promptMock'] = function <Key extends keyof AutoWebTypes>(key: Key, paramStr?: string) {
         setTimeout(() => {
