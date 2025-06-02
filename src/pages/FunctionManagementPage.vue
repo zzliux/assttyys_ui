@@ -7,7 +7,7 @@ import { AutoWeb } from "@/tools/AutoWeb";
 import { deepClone, throttle } from "@/tools/tools";
 import { FixedCollapse, FixedCollapseItem } from "@/components/FixedCollapse";
 import draggable from '@marshallswain/vuedraggable';
-import { Sort, Setting, Wallet, Promotion, Search, Top, CirclePlusFilled, } from '@element-plus/icons-vue';
+import { Sort, Setting, Wallet, Promotion, Search, Top, CirclePlus, } from '@element-plus/icons-vue';
 import { ElMessage } from "element-plus";
 import { pinyin } from "pinyin-pro";
 const $route = useRoute();
@@ -283,20 +283,20 @@ const handleCommand = (command: string) => {
 <template>
     <Nav :name="`功能管理：${$route.query.schemeName}`">
         <template #extra>
-            <el-dropdown @command="handleCommand">
-                <el-button text>
-                    <el-icon>
-                        <CirclePlusFilled />
-                    </el-icon>
-                </el-button>
-                <template #dropdown>
-                    <el-dropdown-menu>
-                        <el-dropdown-item command="inc_yuHun">添加更换式神御魂</el-dropdown-item>
-                        <el-dropdown-item command="inc_start">添加启动游戏</el-dropdown-item>
-                        <el-dropdown-item command="inc_lvBiao">添加绿标</el-dropdown-item>
-                    </el-dropdown-menu>
-                </template>
-            </el-dropdown>
+            <span>
+                <el-popover>
+                    <template #reference>
+                        <el-button link style="margin-bottom: 1px;"><el-icon>
+                                <CirclePlus />
+                            </el-icon></el-button>
+                    </template>
+                    <template #default>
+                        <div><el-button size="small" style="justify-content: left; width:100%" text @click="handleCommand('inc_yuHun')">添加更换式神御魂</el-button></div>
+                        <div><el-button size="small" style="justify-content: left; width:100%" text @click="handleCommand('inc_start')">添加启动游戏</el-button></div>
+                        <div><el-button size="small" style="justify-content: left; width:100%" text @click="handleCommand('inc_lvBiao')">添加绿标</el-button></div>
+                    </template>
+                </el-popover>
+            </span>
             <span>
                 <el-button link @click="scrollToTop()">
                     <el-icon>
@@ -352,7 +352,7 @@ const handleCommand = (command: string) => {
                                 <div style="display: block; border-bottom: 1px solid #dcdfe6;"
                                     v-for="group in item.config">
                                     <div style="display: block;"><el-text size="small" type="info">{{ group.desc
-                                            }}</el-text>
+                                    }}</el-text>
                                     </div>
                                     <el-form-item v-for="configItem in group.config" :label="configItem.desc"
                                         size=small>
