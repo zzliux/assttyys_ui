@@ -1,0 +1,12 @@
+.vscode/*
+node_modules/*
+src/*
+.gitignore
+.npmignore
+env.d.ts
+index.html
+package-lock.json
+tsconfig.app.json
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
