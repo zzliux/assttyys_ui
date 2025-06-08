@@ -214,69 +214,60 @@ const scrollToTop = () => {
 }
 
 const handleCommand = (command: string) => {
+    if (!scheme.value) return;
+    
     if (command === "inc_yuHun") {
-        funcList.value.find(i => i.id === 509).enabled = true;
-        funcList.value.find(i => i.id === 510).enabled = true;
-        funcList.value.find(i => i.id === 511).enabled = true;
-        funcList.value = [
-            ...funcList.value.filter(i => i.id === 511),
-            ...funcList.value.filter(i => i.id !== 511),
+        // 更新scheme配置
+        if (!scheme.value.list.includes(509)) scheme.value.list.push(509);
+        if (!scheme.value.list.includes(510)) scheme.value.list.push(510);
+        if (!scheme.value.list.includes(511)) scheme.value.list.push(511);
+        
+        // 更新排序
+        scheme.value.list = [
+            511, 510, 509,
+            ...scheme.value.list.filter(id => ![511, 510, 509].includes(id))
         ];
-        funcList.value = [
-            ...funcList.value.filter(i => i.id === 510),
-            ...funcList.value.filter(i => i.id !== 510),
-        ];
-        funcList.value = [
-            ...funcList.value.filter(i => i.id === 509),
-            ...funcList.value.filter(i => i.id !== 509),
-        ];
-        enabledChangeEvent();
+        
+        watchSchemeEvent(scheme.value);
     }
     if (command === "inc_start") {
-        funcList.value.find(i => i.id === 993).enabled = true;
-        const scheme_switch_enabled = funcList.value
-            .find(i => i.id === 993)
-            ?.config?.[0]
-            ?.config
-            ?.find(i => i.name === 'scheme_switch_enabled');
-        if (scheme_switch_enabled) {
-            scheme_switch_enabled.value = false;
-        }
-        funcList.value.find(i => i.id === 993).config
-        funcList.value.find(i => i.id === 503).enabled = true;
-        const afterCountOper = funcList.value
-            .find(i => i.id === 503)
-            ?.config?.[0]
-            ?.config
-            ?.find(i => i.name === 'afterCountOper');
-        if (afterCountOper) {
-            afterCountOper.value = '不进行任何操作';
-        }
-        funcList.value = [
-            ...funcList.value.filter(i => i.id === 993),
-            ...funcList.value.filter(i => i.id !== 993),
+        // 更新scheme配置
+        if (!scheme.value.list.includes(993)) scheme.value.list.push(993);
+        if (!scheme.value.list.includes(503)) scheme.value.list.push(503);
+        
+        // 设置配置项
+        if (!scheme.value.config) scheme.value.config = {};
+        if (!scheme.value.config[993]) scheme.value.config[993] = {};
+        scheme.value.config[993]['scheme_switch_enabled'] = false;
+        
+        if (!scheme.value.config[503]) scheme.value.config[503] = {};
+        scheme.value.config[503]['afterCountOper'] = '不进行任何操作';
+        
+        // 更新排序
+        scheme.value.list = [
+            993,
+            ...scheme.value.list.filter(id => id !== 993 && id !== 503),
+            503
         ];
-        funcList.value = [
-            ...funcList.value.filter(i => i.id !== 503),
-            ...funcList.value.filter(i => i.id === 503),
-        ];
-        enabledChangeEvent();
+        
+        watchSchemeEvent(scheme.value);
     }
     if (command === "inc_lvBiao") {
-        funcList.value.find(i => i.id === 51).enabled = true;
-        funcList.value = [
-            ...funcList.value.filter(i => i.id === 51),
-            ...funcList.value.filter(i => i.id !== 51),
+        // 更新scheme配置
+        if (!scheme.value.list.includes(51)) scheme.value.list.push(51);
+        
+        // 设置配置项
+        if (!scheme.value.config) scheme.value.config = {};
+        if (!scheme.value.config[51]) scheme.value.config[51] = {};
+        scheme.value.config[51]['greenType'] = '自定义坐标';
+        
+        // 更新排序
+        scheme.value.list = [
+            51,
+            ...scheme.value.list.filter(id => id !== 51)
         ];
-        const greenType = funcList.value
-            .find(i => i.id === 51)
-            ?.config?.[0]
-            ?.config
-            ?.find(i => i.name === 'greenType');
-        if (greenType) {
-            greenType.value = '自定义坐标';
-        }
-        enabledChangeEvent();
+        
+        watchSchemeEvent(scheme.value);
     }
 }
 </script>
