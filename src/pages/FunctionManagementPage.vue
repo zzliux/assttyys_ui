@@ -224,7 +224,7 @@ const handleCommand = (command: string) => {
         
         // 更新排序
         scheme.value.list = [
-            511, 510, 509,
+            509, 510, 511,
             ...scheme.value.list.filter(id => ![511, 510, 509].includes(id))
         ];
         
