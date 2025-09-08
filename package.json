@@ -1,6 +1,6 @@
 {
   "name": "assttyys_ui",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "author": "zzliux",
   "description": "assttyys的web ui，需引入本模块的index.html食用",
   "repository": {

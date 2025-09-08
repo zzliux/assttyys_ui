@@ -65,7 +65,7 @@ const startCountdown = () => {
     }, 1000);
 };
 const copyQQGroup = async () => {
-    let url = 'https://qm.qq.com/cgi-bin/qm/qr?authKey=XuNaV+q9McnC%2FQsUxS5E6o6ORXV5HndZjzUC5%2FHl4Y6PTSwjmakOrZphXNtRAKuc&k=V45PbJCqhMk7aE0lG_j6LLO4NlKRghs3&noverify=0'
+    let url = 'https://qm.qq.com/q/cAbNMI25UI'
     await AutoWeb.autoPromise('copyToClip', url);
     ElMessage.success(`复制加QQ群链接成功，请在浏览器里打开加入。`)
 }
