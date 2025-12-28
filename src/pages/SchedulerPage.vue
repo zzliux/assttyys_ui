@@ -62,13 +62,18 @@ const switchChangeEvent = async (job: JobOptions) => {
             job.checked = false;
             return;
         }
-        if (!job.level) {
-            ElMessage.error('请设置优先级');
+        if (!job.repeatMode && job.repeatMode !== 0) {
+            ElMessage.error('重复模式不能为空');
             job.checked = false;
             return;
         }
         if (!job.nextDate) {
             ElMessage.error('下次执行时间不能为空');
+            job.checked = false;
+            return;
+        }
+        if (!job.level) {
+            ElMessage.error('请设置优先级');
             job.checked = false;
             return;
         }
