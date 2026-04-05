@@ -84,38 +84,13 @@ const copyGithub = async () => {
     </div>
     <div class="assttyys_container">
         <el-text style="font-size: 1em; margin-top: 10px;margin-bottom: 20px;">
-            本软件完全<span class="red-text">免费</span>，从任何收费渠道获取的请<span class="red-text">申请退款</span>，这是对开发者的<span
-                class="red-text">支持</span>和<span class="red-text">尊重</span>！任何支持<span
-                class="red-text">牟利</span>的行为，都将和<span class="red-text">倒狗</span>一样被<span
-                class="red-text">唾弃</span>！<span class="red-text">倒狗</span>提供不了任何<span
-                class="red-text">技术支持</span>，也不会对任何<span class="red-text">问题负责</span>！我们也不欢迎未<span
-                class="red-text">及时退款</span>的用户！
+            本软件完全<span class="red-text">免费</span>， <span class="blue-text">痒痒鼠高玩交流群</span>
+            <el-button style="margin-left: 5px;margin-top: 2px;" @click="copyQQGroup">复制QQ群邀请链接</el-button>
         </el-text>
-    </div>
-    <div>
-        <el-text style="font-size: 1em;display: block;">
-            阅读以下<span class=" blue-text">进群须知</span>后加入：<span class="blue-text">痒痒鼠高玩交流群</span>，获得更优质的<span
-                class="blue-text">技术支持</span>和<span class="blue-text">问题解答</span>！
-        </el-text>
-        <el-text style="font-size: 1em;display: block;">
-            1.先看群公告和手册，不要问已经在精华消息中有明确答案的问题。
-        </el-text>
-        <el-text style="font-size: 1em;display: block;">
-            2.学会提问的效率，参考手册第2.3或群公告图片。
-        </el-text>
-        <el-text style="font-size: 1em;display: block;">
-            3.没人回答可能是提问方法错误或是管理未看到。
-        </el-text>
-        <div style="display: flex;">
-            <el-checkbox style="margin-left: 20px; margin-right: 5px;font-size: 1em; margin-top: 2px;"
-                v-model="ReadAlready" :disabled="isDisabled" label="我已仔细阅读" />
-            <el-text v-if="isDisabled" style=" margin-top: -2px;">{{ countdown }}秒</el-text>
-            <el-button style="margin-left: 5px;margin-top: 2px;" type="primary" :disabled="!ReadAlready"
-                @click="copyQQGroup">复制QQ群邀请链接</el-button>
-        </div>
     </div>
     <div style="margin-top: 10px; ">
-        <el-text style="font-size: 1em;display: block;">需登录Github账号，点击跳转会用浏览器打开，点击复制链接后需自行粘贴打开，完成后点击验证。(可能需要梯子)</el-text>
+        <el-text
+            style="font-size: 1em;display: block;">需登录Github账号，点击跳转会用浏览器打开，点击复制链接后需自行粘贴打开，完成后点击验证。(可能需要梯子)</el-text>
         <div style="display: flex;margin-top: 5px;margin-left: 20px;">
             <el-checkbox v-model="autoOAuth" label="记住选择" />
             <el-button style="margin-left: 20px;" type="primary" @click="gotoGithubOAuth">跳转</el-button>

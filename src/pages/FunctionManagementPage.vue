@@ -106,6 +106,10 @@ const commonConfigChangeEvent = () => {
 
 // TODO 2. 监听funcList[x].enabled变化反向更新
 const enabledChangeEvent = () => {
+    const eleAll: HTMLElement[] = [].slice.call(document.querySelectorAll('[sflag]'));
+    eleAll.forEach(ele => {
+        ele.parentElement.parentElement.parentElement.style.backgroundColor = 'white'; // 恢复为白色背景
+    });
     scheme.value.list = funcList.value.filter(item => item.enabled).map(item => item.id);
     reSort();
 }
@@ -215,58 +219,78 @@ const scrollToTop = () => {
 
 const handleCommand = (command: string) => {
     if (!scheme.value) return;
-    
+
     if (command === "inc_yuHun") {
-        // 更新scheme配置
-        if (!scheme.value.list.includes(509)) scheme.value.list.push(509);
         if (!scheme.value.list.includes(510)) scheme.value.list.push(510);
-        if (!scheme.value.list.includes(511)) scheme.value.list.push(511);
-        
+        if (!scheme.value.list.includes(509)) scheme.value.list.push(509);
         // 更新排序
+        if (!scheme.value.config) scheme.value.config = {};
+        if (!scheme.value.config[510]) scheme.value.config[510] = {};
+        scheme.value.config[510]['fastMode'] = true;
         scheme.value.list = [
-            509, 510, 511,
-            ...scheme.value.list.filter(id => ![511, 510, 509].includes(id))
+            509,
+            510,
+            ...scheme.value.list.filter(id => id !== 509 && id !== 510)
         ];
-        
         watchSchemeEvent(scheme.value);
     }
     if (command === "inc_start") {
         // 更新scheme配置
-        if (!scheme.value.list.includes(993)) scheme.value.list.push(993);
+        if (!scheme.value.list.includes(690)) scheme.value.list.push(690);
         if (!scheme.value.list.includes(503)) scheme.value.list.push(503);
-        
+
         // 设置配置项
         if (!scheme.value.config) scheme.value.config = {};
-        if (!scheme.value.config[993]) scheme.value.config[993] = {};
-        scheme.value.config[993]['scheme_switch_enabled'] = false;
-        
         if (!scheme.value.config[503]) scheme.value.config[503] = {};
         scheme.value.config[503]['afterCountOper'] = '不进行任何操作';
-        
+
         // 更新排序
         scheme.value.list = [
-            993,
-            ...scheme.value.list.filter(id => id !== 993 && id !== 503),
+            690,
+            ...scheme.value.list.filter(id => id !== 690 && id !== 503),
             503
         ];
-        
+
         watchSchemeEvent(scheme.value);
     }
     if (command === "inc_lvBiao") {
         // 更新scheme配置
         if (!scheme.value.list.includes(51)) scheme.value.list.push(51);
-        
+
         // 设置配置项
         if (!scheme.value.config) scheme.value.config = {};
         if (!scheme.value.config[51]) scheme.value.config[51] = {};
         scheme.value.config[51]['greenType'] = '自定义坐标';
-        
+
         // 更新排序
         scheme.value.list = [
             51,
             ...scheme.value.list.filter(id => id !== 51)
         ];
-        
+
+        watchSchemeEvent(scheme.value);
+    }
+    if (command === "inc_invite") {
+        // 更新scheme配置
+        if (!scheme.value.list.includes(5)) scheme.value.list.push(5);
+        if (!scheme.value.list.includes(306)) scheme.value.list.push(306);
+        // 更新排序
+        const positionFor5 = [3, 2, 1, 0].find(num => scheme.value.list.includes(num));
+        // 将 5 插入合适位置
+        if (positionFor5 !== undefined) {
+            const index = scheme.value.list.indexOf(positionFor5) + 1;
+            scheme.value.list.splice(index, 0, 5); // 将 5 插入到找到的数后面
+        } else {
+            scheme.value.list.push(5); // 如果没有找到 3、2、1，将 5 放到最后
+        }
+        // 确保 306 在 5 前面
+        if (scheme.value.list.includes(5)) {
+            const indexFor4 = scheme.value.list.indexOf(5);
+            if (scheme.value.list[indexFor4 - 1] !== 306) {
+                scheme.value.list.splice(indexFor4, 0, 306); // 把 306 插入到 5 前面
+            }
+        }
+
         watchSchemeEvent(scheme.value);
     }
 }
@@ -282,9 +306,14 @@ const handleCommand = (command: string) => {
                             </el-icon></el-button>
                     </template>
                     <template #default>
-                        <div><el-button size="small" style="justify-content: left; width:100%" text @click="handleCommand('inc_yuHun')">添加更换式神御魂</el-button></div>
-                        <div><el-button size="small" style="justify-content: left; width:100%" text @click="handleCommand('inc_start')">添加启动游戏</el-button></div>
-                        <div><el-button size="small" style="justify-content: left; width:100%" text @click="handleCommand('inc_lvBiao')">添加绿标</el-button></div>
+                        <div><el-button size="small" style="justify-content: left; width:100%" text
+                                @click="handleCommand('inc_yuHun')">添加更换式神御魂</el-button></div>
+                        <div><el-button size="small" style="justify-content: left; width:100%" text
+                                @click="handleCommand('inc_start')">添加启动游戏</el-button></div>
+                        <div><el-button size="small" style="justify-content: left; width:100%" text
+                                @click="handleCommand('inc_lvBiao')">添加绿标</el-button></div>
+                        <div><el-button size="small" style="justify-content: left; width:100%" text
+                                @click="handleCommand('inc_invite')">添加邀请好友</el-button></div>
                     </template>
                 </el-popover>
             </span>
@@ -297,8 +326,8 @@ const handleCommand = (command: string) => {
             </span>
             <el-input class="search-box" v-model="searchStr" size="small"
                 :style="{ width: searchInputShown ? '110px' : '24px' }" placeholder="请输入关键字" :prefix-icon="Search"
-                @focus="searchInputShown = true" @blur="searchInputShown = false" @keydown="handleKeydown"
-                @keyup="serchKeyEvent" @input="searchInputEvent(false)" />
+                @focus="searchInputShown = true" @blur="searchInputShown = false; searchStr = ''"
+                @keydown="handleKeydown" @keyup="serchKeyEvent" @input="searchInputEvent(false)" />
             <span style="margin-right: 10px">
                 <el-button link @click="commonConfigDialogShown = true">
                     <el-icon>
@@ -310,76 +339,81 @@ const handleCommand = (command: string) => {
     </Nav>
     <div class="container">
         <FixedCollapse :multipart="false" fix-header>
-            <draggable :force-fallback="true" v-model="funcList" item-key="schemeName"
-                handle=".drag-item-card-scheme-handle" v-bind="dragOptions" @update="enabledChangeEvent">
-                <template #item="{ element: item, index }">
-                    <FixedCollapseItem :name="`${item.id} ${item.name}`">
-                        <template #header>
-                            <div>
-                                <div style="margin-bottom: 5px;" :sflag="`${item.id}${item.name}`">
-                                    <el-text size="small" style="margin-bottom: 5px; font-weight: bold;">
-                                        {{ item.id }} {{ item.name }} {{ item.config?.length > 0 ? '*' : '' }}
-                                    </el-text>
-                                </div>
-                                <div><el-text size="small" type="info">{{ item.desc }}</el-text></div>
-                            </div>
-                        </template>
-                        <template #header-icon-left>
-                            <div style="display: flex;">
-                                <div class="drag-item-card-scheme-handle">
-                                    <el-text size="small">
-                                        <el-icon>
-                                            <Sort />
-                                        </el-icon>
-                                    </el-text>
-                                </div>
-                                <div class="switch-box"><el-switch v-model="item.enabled" @click.stop size="small"
-                                        @change="enabledChangeEvent" /></div>
-                            </div>
-                        </template>
-                        <template v-if="item.config?.length > 0" #content>
-                            <el-form label-position="left" :model="item" label-width="70%" size="small"
-                                class="form-container">
-                                <div style="display: block; border-bottom: 1px solid #dcdfe6;"
-                                    v-for="group in item.config">
-                                    <div style="display: block;"><el-text size="small" type="info">{{ group.desc
-                                    }}</el-text>
+            <div style="padding-bottom: 62px;">
+                <draggable :force-fallback="true" v-model="funcList" item-key="schemeName"
+                    handle=".drag-item-card-scheme-handle" v-bind="dragOptions" @update="enabledChangeEvent">
+                    <template #item="{ element: item, index }">
+                        <FixedCollapseItem :name="`${item.id} ${item.name}`">
+                            <template #header>
+                                <div>
+                                    <div style="margin-bottom: 5px;" :sflag="`${item.id}${item.name}`">
+                                        <el-text size="small" style="margin-bottom: 5px; font-weight: bold;">
+                                            {{ item.id }} {{ item.name }} {{ item.config?.length > 0 ? '*' : '' }}
+                                        </el-text>
                                     </div>
-                                    <el-form-item v-for="configItem in group.config" :label="configItem.desc"
-                                        size=small>
-                                        <el-select @change="configChangeEvent(item)" v-if="configItem.type === 'list'"
-                                            size="small" v-model="configItem.value">
-                                            <el-option v-for="dataItem in configItem.data" :key="dataItem"
-                                                :label="dataItem" :value="dataItem" />
-                                        </el-select>
-                                        <el-select multiple @change="configChangeEvent(item)"
-                                            v-if="configItem.type === 'lists'" size="small" v-model="configItem.value">
-                                            <el-option v-for="dataItem in configItem.data" :key="dataItem"
-                                                :label="dataItem" :value="dataItem" />
-                                        </el-select>
-                                        <el-switch @change="configChangeEvent(item)"
-                                            v-else-if="configItem.type === 'switch'" v-model="configItem.value" />
-                                        <el-input @input="configChangeEvent(item)"
-                                            v-else-if="configItem.type === 'text'" v-model="configItem.value" />
-                                        <el-input @input="configChangeEvent(item)"
-                                            v-else-if="configItem.type === 'integer' || configItem.type === 'number'"
-                                            v-model="configItem.value" />
-                                        <el-select @change="configChangeEvent(item)"
-                                            v-else-if="configItem.type === 'scheme'" size="small"
-                                            v-model="configItem.value" placeholder="请选择方案">
-                                            <el-option-group v-for="group in groupSchemeNames" :key="group.groupName"
-                                                :label="group.groupName">
-                                                <el-option v-for="schemeName in group.schemeNames" :key="schemeName"
-                                                    :label="schemeName" :value="schemeName" />
-                                            </el-option-group>
-                                        </el-select>
-                                    </el-form-item>
+                                    <div><el-text size="small" type="info">{{ item.desc }}</el-text></div>
                                 </div>
-                            </el-form>
-                        </template>
-                    </FixedCollapseItem>
-                </template>
-            </draggable>
+                            </template>
+                            <template #header-icon-left>
+                                <div style="display: flex;">
+                                    <div class="drag-item-card-scheme-handle">
+                                        <el-text size="small">
+                                            <el-icon>
+                                                <Sort />
+                                            </el-icon>
+                                        </el-text>
+                                    </div>
+                                    <div class="switch-box"><el-switch v-model="item.enabled" @click.stop size="small"
+                                            @change="enabledChangeEvent" /></div>
+                                </div>
+                            </template>
+                            <template v-if="item.config?.length > 0" #content>
+
+                                <el-form label-position="left" :model="item" label-width="70%" size="small"
+                                    class="form-container">
+                                    <div style="display: block; border-bottom: 1px solid #dcdfe6;"
+                                        v-for="group in item.config">
+                                        <div style="display: block;"><el-text size="small" type="info">{{ group.desc
+                                                }}</el-text>
+                                        </div>
+                                        <el-form-item v-for="configItem in group.config" :label="configItem.desc"
+                                            size=small>
+                                            <el-select @change="configChangeEvent(item)"
+                                                v-if="configItem.type === 'list'" size="small"
+                                                v-model="configItem.value">
+                                                <el-option v-for="dataItem in configItem.data" :key="dataItem"
+                                                    :label="dataItem" :value="dataItem" />
+                                            </el-select>
+                                            <el-select multiple @change="configChangeEvent(item)"
+                                                v-if="configItem.type === 'lists'" size="small"
+                                                v-model="configItem.value">
+                                                <el-option v-for="dataItem in configItem.data" :key="dataItem"
+                                                    :label="dataItem" :value="dataItem" />
+                                            </el-select>
+                                            <el-switch @change="configChangeEvent(item)"
+                                                v-else-if="configItem.type === 'switch'" v-model="configItem.value" />
+                                            <el-input @input="configChangeEvent(item)"
+                                                v-else-if="configItem.type === 'text'" v-model="configItem.value" />
+                                            <el-input @input="configChangeEvent(item)"
+                                                v-else-if="configItem.type === 'integer' || configItem.type === 'number'"
+                                                v-model="configItem.value" />
+                                            <el-select @change="configChangeEvent(item)"
+                                                v-else-if="configItem.type === 'scheme'" size="small"
+                                                v-model="configItem.value" placeholder="请选择方案">
+                                                <el-option-group v-for="group in groupSchemeNames"
+                                                    :key="group.groupName" :label="group.groupName">
+                                                    <el-option v-for="schemeName in group.schemeNames" :key="schemeName"
+                                                        :label="schemeName" :value="schemeName" />
+                                                </el-option-group>
+                                            </el-select>
+                                        </el-form-item>
+                                    </div>
+                                </el-form>
+                            </template>
+                        </FixedCollapseItem>
+                    </template>
+                </draggable>
+            </div>
         </FixedCollapse>
         <div style="position: fixed; right: 10px; bottom: 10px; z-index: 1;">
             <el-button style="font-size: 16px; height: 42px;" type="primary" @click="saveScheme()"
