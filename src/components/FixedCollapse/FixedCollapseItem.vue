@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { inject, nextTick, ref, watch, type ModelRef, type Ref } from 'vue';
+import { inject, nextTick, ref, watch, type ModelRef, type Ref, onMounted } from 'vue';
 import { ArrowRight } from '@element-plus/icons-vue';
 
 
 const contentDomRef = ref<HTMLDivElement>();
 const contentInnerDomRef = ref<HTMLDivElement>();
-const fixedCollapseItemHeaderRef = ref<HTMLDivElement>();
+const enableTransition = ref(false)
 const $props = defineProps({
     name: String,
     prevColor: {
@@ -47,7 +47,11 @@ watch(() => $parentModel.value, (val, oldVal) => {
     if (val === oldVal) return;
     modelChangeEvent(val);
 });
-
+onMounted(() => {
+    requestAnimationFrame(() => {
+        enableTransition.value = true
+    })
+})
 function toggleItem() {
     isOpen.value = !isOpen.value;
     if (isOpen.value) {
@@ -133,8 +137,9 @@ const modelChangeEvent = (val: string) => {
                     </el-icon></el-text>
             </div>
         </div>
-        <div class="fixedCollapseItem-content" ref="contentDomRef">
-            <div v-if="$parentProps.preRenderContent || (isOpen || isOpenDelay)" class="fixedCollapseItem-contentInner" ref="contentInnerDomRef">
+        <div class="fixedCollapseItem-content" ref="contentDomRef" :class="{ animated: enableTransition }">
+            <div v-if="$parentProps.preRenderContent || (isOpen || isOpenDelay)" class="fixedCollapseItem-contentInner"
+                ref="contentInnerDomRef">
                 <slot name="content"></slot>
             </div>
         </div>
@@ -178,12 +183,15 @@ const modelChangeEvent = (val: string) => {
 }
 
 .fixedCollapseItem-content {
-    transition: all .2s ease-in-out;
     overflow: hidden;
     /* 动画的时候不显示滚动条 */
     height: 0px;
     width: 100%;
     z-index: 0;
+}
+
+.fixedCollapseItem-content.animated {
+    transition: all .1s ease-in-out;
 }
 
 .fixedCollapseItem-contentInner {

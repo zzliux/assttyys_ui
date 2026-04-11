@@ -7,7 +7,7 @@ import type { GroupSchemeName, Scheme, SchemePageConfig } from '@/tools/declares
 import SchemeItemCard from '@/components/SchemeItemCard.vue';
 import globalEmmiter from '@/tools/GlobalEventBus';
 import { deepClone, getCommonConfig, getGroupColor, groupedSchemeListToGroupSchemeNames, groupSchemeList, simplifySchemeList, throttle } from '@/tools/tools';
-import { Plus, Sort, Star, StarFilled, More, Expand, Fold, View, Hide, Folder, FolderOpened, Search } from '@element-plus/icons-vue'
+import { Plus, Sort, Star, StarFilled, More, Expand, Fold, View, Hide, Folder, FolderOpened, Search, Close } from '@element-plus/icons-vue'
 import SchemeEditDialog from '@/components/SchemeEditDialog/SchemeEditDialog.vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { onConfirmOption } from '@/components/SchemeEditDialog';
@@ -453,12 +453,15 @@ const getPinyin = (str: string): string => {
 ::v-deep(.el-page-header__extra .el-input.search-box) {
     transition: width .1s ease-in-out;
 }
+
 ::v-deep(.el-page-header__extra .el-input__wrapper) {
     border: none !important;
 }
+
 ::v-deep(.el-page-header__extra .el-input__wrapper.is-focus) {
     border-bottom: 1px solid var(--el-color-primary) !important;
 }
+
 ::v-deep(.el-page-header__extra .el-input__prefix) {
     color: inherit;
 }
