@@ -55,6 +55,7 @@ const improtBtnEvent = async () => {
     $model.value = false;
     importSelectDialogShown.value = false;
     ElMessage.success('导入完成');
+    importDialogStr.value = ''
     globalEmmiter.emit('Event.SchemeItemCard.Operation'); // 仅用于主界面刷新下数据
 }
 
@@ -74,7 +75,10 @@ const improtBtnEvent = async () => {
             </el-icon>
         </div>
     </el-dialog>
-    <el-dialog class="import-scheme-dialog" v-model="importSelectDialogShown" height="100%" width="100%" fullscreen>
+    <el-dialog class="import-scheme-dialog" v-model="importSelectDialogShown" height="100%" width="100%" fullscreen
+        :show-close="false">
+        <div style="margin-top: 35px;">
+        </div>
         <el-table @row-click="(row: Scheme) => tableRef.toggleRowSelection(row)" size="small" ref="tableRef"
             :data="importSchemeList" style="width: 100%;" stripe>
             <el-table-column type="selection" width="28" />
@@ -84,6 +88,11 @@ const improtBtnEvent = async () => {
         <div style="position: absolute; right: 16px; bottom: 16px;">
             <el-button type="primary" size="large" @click="improtBtnEvent">导入</el-button>
         </div>
+        <div style="position: absolute; right: 28px; top: 40px; font-size: 20px;">
+            <el-icon style="color: black;" @click="importSelectDialogShown = false">
+                <Close />
+            </el-icon>
+        </div>
     </el-dialog>
 </template>
 
@@ -91,5 +100,11 @@ const improtBtnEvent = async () => {
 .import-scheme-dialog .el-dialog__body {
     height: calc(100% - 32px);
     overflow: auto;
+}
+
+::v-deep .el-dialog__headerbtn {
+    position: relative !important;
+    top: 20px !important;
+    /* 向下移动 20px */
 }
 </style>
