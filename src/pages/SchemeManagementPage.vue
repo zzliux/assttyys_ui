@@ -120,6 +120,7 @@ const showHideGroup = async (e: MouseEvent, groupNameStr: string, hidden: boolea
 }
 
 
+
 onMounted(async () => {
     await loadData();
     if (typeof config.value.currentCollapseVal === 'undefined') {
@@ -265,7 +266,16 @@ const getPinyin = (str: string): string => {
         type: 'array'      // 返回拼音数组
     }).join('');
 }
-
+const copyFinish = async (str: string) => {
+    AutoWeb.autoPromise('copyToClip', str);
+    exportDialogShown.value = false;
+    Object.keys(groupedSchemeList.value).forEach(groupName => {
+        groupedSchemeList.value[groupName].forEach(scheme => {
+            scheme.export = false;
+        });
+    });
+    exportMode.value = false
+}
 
 </script>
 
@@ -376,7 +386,7 @@ const getPinyin = (str: string): string => {
             <el-input @focus="($event: FocusEvent) => ($event.currentTarget as HTMLInputElement).select()"
                 style="height: 50vh" size="medium" type="textarea" v-model="exportDialogStr" />
             <el-button type="primary" size="medium" style="position: absolute; right: 16px; bottom: 16px;"
-                @click="AutoWeb.autoPromise('copyToClip', exportDialogStr)">复制</el-button>
+                @click=copyFinish(exportDialogStr)>复制</el-button>
             <div style="position: absolute; right: 28px; top: 5px; font-size: 20px;">
                 <el-icon style="color: black;" @click="exportDialogShown = false">
                     <Close />
