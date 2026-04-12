@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { inject, nextTick, ref, watch, type ModelRef, type Ref, onMounted } from 'vue';
+import { inject, nextTick, ref, watch, type ModelRef, type Ref, onMounted, onUnmounted } from 'vue';
 import { ArrowRight } from '@element-plus/icons-vue';
 
 
 const contentDomRef = ref<HTMLDivElement>();
 const contentInnerDomRef = ref<HTMLDivElement>();
 const enableTransition = ref(false)
+const resizeObserver = ref<ResizeObserver | null>(null);
 const $props = defineProps({
     name: String,
     prevColor: {
@@ -50,8 +51,33 @@ watch(() => $parentModel.value, (val, oldVal) => {
 onMounted(() => {
     requestAnimationFrame(() => {
         enableTransition.value = true
-    })
-})
+    });
+
+    // 监听内容变化，当方案内容变化时重新计算高度
+    if (contentInnerDomRef.value) {
+        resizeObserver.value = new ResizeObserver(() => {
+            if (isOpen.value) {
+                updateContentHeight();
+            }
+        });
+        resizeObserver.value.observe(contentInnerDomRef.value);
+    }
+});
+
+onUnmounted(() => {
+    if (resizeObserver.value) {
+        resizeObserver.value.disconnect();
+        resizeObserver.value = null;
+    }
+});
+
+// 更新内容区域高度
+const updateContentHeight = () => {
+    if (!contentInnerDomRef.value || !contentDomRef.value) return;
+    const height = contentInnerDomRef.value.getBoundingClientRect().height;
+    contentDomRef.value.style.height = `${height <= 4 ? 0 : height}px`;
+};
+
 function toggleItem() {
     isOpen.value = !isOpen.value;
     if (isOpen.value) {
@@ -82,15 +108,7 @@ const modelChangeEvent = (val: string) => {
     }
     if (isOpen.value) {
         nextTick(() => {
-
-            // const parentHeight = parentContainerDom.value.getBoundingClientRect().height;
-            // const singleHeight = singleDoms.value[0].getBoundingClientRect().height;
-            // const singleCounts = singleDoms.value.length;
-            // const height1 = parentHeight - singleHeight * Math.min(singleCounts, 2);
-            const height2 = contentInnerDomRef.value.getBoundingClientRect().height;
-            // const height = Math.min(height1, height2);
-
-            contentDomRef.value.style.height = `${height2 <= 4 ? 0 : height2}px`;
+            updateContentHeight();
             isOpen.value = true;
 
             // 关闭一个特高的，再打开一个矮的时候，当前item滚动直接超出父容器时，修复滚动位置
