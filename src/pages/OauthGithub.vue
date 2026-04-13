@@ -88,7 +88,7 @@ const copyGithub = async () => {
             <el-button style="margin-left: 5px;margin-top: 2px;" @click="copyQQGroup">复制QQ群邀请链接</el-button>
         </el-text>
     </div>
-    <div style="margin-top: 10px; ">
+    <div style="margin: 10px 20px 0px 20px; ">
         <el-text
             style="font-size: 1em;display: block;">需登录Github账号，点击跳转会用浏览器打开，点击复制链接后需自行粘贴打开，完成后点击验证。(可能需要梯子)</el-text>
         <div style="display: flex;margin-top: 5px;margin-left: 20px;">
@@ -98,7 +98,7 @@ const copyGithub = async () => {
             <el-button style="" type="primary" @click="resumeValidUser">验证</el-button>
         </div>
     </div>
-    <div style="margin-top: 10px; ">
+    <div style="margin: 10px 20px 0px 20px; ">
         <el-text style="font-size: 1em;">本软件的Github仓库地址：</el-text>
         <el-text style="font-size: 1em;">https://github.com/zzliux/assttyys_autojs</el-text>
         <el-button style="margin-left: 20px;" type="primary" @click="copyGithub">复制链接</el-button>
