@@ -3,7 +3,7 @@ import Nav from '@/components/Nav.vue';
 import { AutoWeb } from '@/tools/AutoWeb';
 import type { GroupSchemeName, JobOptions } from '@/tools/declares';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
-import { More, Plus, Operation, Refresh } from '@element-plus/icons-vue';
+import { More, Plus, Operation, Refresh, Delete, Loading } from '@element-plus/icons-vue';
 import FixedCollapse from '@/components/FixedCollapse/FixedCollapse.vue';
 import FixedCollapseItem from '@/components/FixedCollapse/FixedCollapseItem.vue';
 import { getNextByCron } from '@/tools/cron';
@@ -28,19 +28,80 @@ const scheduleJobEditDialogShown = ref<boolean>(false);
 const editJob = ref<JobOptions>(null);
 const editJobType = ref<editType>(null);
 const lazyMode = ref<boolean>(false);
+const collapseVal = ref<string>('');
+
+// 定时任务配置管理
+const SCHEDULE_CONFIGS_KEY = 'store.ScheduleConfigs';
+const SCHEDULE_SELECTED_CONFIG_KEY = 'store.ScheduleSelectedConfig';
+const scheduleConfigs = ref<Record<string, JobOptions[]>>({});
+const selectedConfigName = ref<string>('');
+const isLoadingConfig = ref<boolean>(true);
+const saveConfigDialogVisible = ref<boolean>(false);
+const newConfigName = ref<string>('');
+
+// 加载保存的配置列表
+const loadScheduleConfigs = () => {
+    try {
+        scheduleConfigs.value = JSON.parse(localStorage.getItem(SCHEDULE_CONFIGS_KEY) || '{}');
+        selectedConfigName.value = localStorage.getItem(SCHEDULE_SELECTED_CONFIG_KEY) || '';
+    } catch {
+        scheduleConfigs.value = {};
+        selectedConfigName.value = '';
+    } finally {
+        isLoadingConfig.value = false;
+    }
+};
+
+// 保存当前配置
+const saveCurrentConfig = () => {
+    if (!newConfigName.value.trim()) {
+        ElMessage.error('配置名称不能为空');
+        return;
+    }
+    const name = newConfigName.value.trim();
+    if (scheduleConfigs.value[name]) {
+        ElMessage.error('配置名称已存在');
+        return;
+    }
+    scheduleConfigs.value[name] = JSON.parse(JSON.stringify(scheduleList.value));
+    localStorage.setItem(SCHEDULE_CONFIGS_KEY, JSON.stringify(scheduleConfigs.value));
+    localStorage.setItem(SCHEDULE_SELECTED_CONFIG_KEY, name);
+    selectedConfigName.value = name;
+    saveConfigDialogVisible.value = false;
+    newConfigName.value = '';
+    ElMessage.success('配置保存成功');
+};
+
+// 加载配置
+const loadConfig = async (name: string) => {
+    if (!scheduleConfigs.value[name]) return;
+    scheduleList.value = JSON.parse(JSON.stringify(scheduleConfigs.value[name]));
+    selectedConfigName.value = name;
+    localStorage.setItem(SCHEDULE_SELECTED_CONFIG_KEY, name);
+    await AutoWeb.autoPromise('saveScheduleList', scheduleList.value);
+    ElMessage.success('配置加载成功');
+};
+
+// 删除配置
+const deleteConfig = (name: string) => {
+    delete scheduleConfigs.value[name];
+    localStorage.setItem(SCHEDULE_CONFIGS_KEY, JSON.stringify(scheduleConfigs.value));
+    if (selectedConfigName.value === name) {
+        selectedConfigName.value = '';
+        localStorage.removeItem(SCHEDULE_SELECTED_CONFIG_KEY);
+    }
+    ElMessage.success('配置删除成功');
+};
 
 onMounted(async () => {
     await loadData();
+    loadScheduleConfigs();
     groupSchemeNames.value = await AutoWeb.autoPromise('getGroupSchemeNames');
 
     lazyMode.value = await AutoWeb.autoPromise('getScheduleLazyMode');
 
     window.loadScheduleData = loadData;
 });
-
-onUnmounted(() => {
-    delete window.loadScheduleData;
-})
 
 const loadData = async () => {
     const list = await AutoWeb.autoPromise('getScheduleList');
@@ -101,12 +162,17 @@ const reSort = (list: JobOptions[]) => {
         });
     } else if (config.value.orderBy === 'nextDate') {
         list.sort((a, b) => {
+            // 先按启用状态排（启用的在前）
+            if (a.checked !== b.checked) {
+                return a.checked ? -1 : 1;
+            }
+            // 再按时间排
             if (a.nextDate && b.nextDate) {
                 return new Date(a.nextDate).getTime() - new Date(b.nextDate).getTime();
             } else if (a.nextDate && !b.nextDate) {
-                return 1;
-            } else if (!a.nextDate && b.nextDate) {
                 return -1;
+            } else if (!a.nextDate && b.nextDate) {
+                return 1;
             }
             return 0;
         });
@@ -123,7 +189,8 @@ const addBtnEvent = () => {
         interval: null,
         nextDate: null,
         config: {
-            scheme: '请选择关联方案'
+            scheme: '',
+            level: '10'
         },
     };
     scheduleJobEditDialogShown.value = true;
@@ -132,6 +199,7 @@ const addBtnEvent = () => {
 const refreshBtnEvent = async () => {
     await loadData();
 }
+
 const runBtnEvent = async (job: JobOptions) => {
     if (!job.checked) {
         ElMessage.error('请先启用任务');
@@ -164,6 +232,7 @@ const jobEditConfirmEvent = async (option: onConfirmOption) => {
         scheduleList.value.push(option.newScheduleJob);
         reSort(scheduleList.value);
         await AutoWeb.autoPromise('saveScheduleList', scheduleList.value);
+        collapseVal.value = `${option.newScheduleJob.id} ${option.newScheduleJob.name}`;
         return true;
     } else if (option.type === 'modify') {
         if ((scheduleList.value.filter(v => v.name === option.oldScheduleJob.name).length > 1)) {
@@ -185,28 +254,62 @@ const lazyModeBtnClickEvent = async () => {
 }
 
 </script>
+
 <template>
     <Nav name="定时任务">
         <template #extra>
+            <!-- 配置管理下拉框 -->
             <span style="margin-right: 10px;">
+                <el-dropdown trigger="click">
+                    <el-button link>
+                        <el-icon v-if="isLoadingConfig" class="is-loading"><Loading /></el-icon>
+                        <el-text v-else style="padding-top: 2px;">{{ selectedConfigName || '配置' }}</el-text>
+                    </el-button>
+                    <template #dropdown>
+                        <el-dropdown-menu>
+                            <el-dropdown-item v-for="(config, name) in scheduleConfigs" :key="name"
+                                @click="loadConfig(name)">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                    <span :style="{ color: name === selectedConfigName ? '#409eff' : '' }">{{ name
+                                        }}</span>
+                                    <el-icon @click.stop="deleteConfig(name)"
+                                        style="margin-left: 10px; color: #f56c6c;">
+                                        <Delete />
+                                    </el-icon>
+                                </div>
+                            </el-dropdown-item>
+                            <el-dropdown-item divided @click="saveConfigDialogVisible = true">
+                                <div style="display: flex; align-items: center;">
+                                    <el-icon style="margin-right: 5px;">
+                                        <Plus />
+                                    </el-icon>
+                                    保存当前配置
+                                </div>
+                            </el-dropdown-item>
+                        </el-dropdown-menu>
+                    </template>
+                </el-dropdown>
+            </span>
+            <span style="margin-right: 10px; display: inline-flex; align-items: center;">
                 <el-button link @click="refreshBtnEvent">
                     <el-icon>
                         <Refresh />
                     </el-icon>
                 </el-button>
             </span>
-            <span style="margin-right: 10px;">
+            <span style="margin-right: 10px; display: inline-flex; align-items: center;">
                 <el-button link @click="addBtnEvent">
                     <el-icon>
                         <Plus />
                     </el-icon>
                 </el-button>
             </span>
-            <span style="margin-right: 10px">
+            <span style="margin-right: 10px; display: inline-flex; align-items: center;">
                 <el-popover placement="bottom" trigger="click">
                     <template #reference>
                         <el-button link><el-icon>
-                                <More />
+                            <More />
                             </el-icon></el-button>
                     </template>
                     <template #default>
@@ -225,9 +328,18 @@ const lazyModeBtnClickEvent = async () => {
             </span>
         </template>
     </Nav>
+    <!-- 保存配置对话框 -->
+    <el-dialog v-model="saveConfigDialogVisible" title="保存配置" width="300px">
+        <el-input v-model="newConfigName" placeholder="请输入配置名称" @keyup.enter="saveCurrentConfig" />
+        <template #footer>
+            <el-button @click="saveConfigDialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="saveCurrentConfig">确定</el-button>
+        </template>
+    </el-dialog>
+
     <div class="container">
-        <FixedCollapse :multipart="false">
-            <FixedCollapseItem v-for="(item, index) in scheduleList" :name="`${item.id} ${item.name}`">
+        <FixedCollapse v-model="collapseVal" :multipart="false">
+            <FixedCollapseItem v-for="(item, index) in scheduleList" :key="index" :name="`${item.id} ${item.name}`">
                 <template #header>
                     <div>
                         <div style="margin-bottom: 5px;">
@@ -239,12 +351,15 @@ const lazyModeBtnClickEvent = async () => {
                         </div>
                         <div><el-text size="small" type="info">{{ item.desc }}</el-text></div>
                         <div class="times-region">
-                            <div class="times-item" v-if="item.lastRunTime"><el-text size="small" type="info">上次执行开始时间：{{ toStdFormatDateStr(item.lastRunTime)
+                            <div class="times-item" v-if="item.lastRunTime"><el-text size="small"
+                                    type="info">上次执行开始时间：{{ toStdFormatDateStr(item.lastRunTime)
                                     }}</el-text></div>
-                            <div class="times-item" v-if="item.lastStopTime"><el-text size="small" type="info">上次执行结束时间：{{ toStdFormatDateStr(item.lastStopTime)
+                            <div class="times-item" v-if="item.lastStopTime"><el-text size="small"
+                                    type="info">上次执行结束时间：{{ toStdFormatDateStr(item.lastStopTime)
                                     }}</el-text></div>
-                            <div class="times-item" v-if="item.nextDate"><el-text size="small" type="info">下次执行时间：{{ toStdFormatDateStr(item.nextDate) }}({{
-                                    bueatifyTime(item.nextDate) }})</el-text>
+                            <div class="times-item" v-if="item.nextDate"><el-text size="small" type="info">下次执行时间：{{
+                                toStdFormatDateStr(item.nextDate) }}({{
+                                        bueatifyTime(item.nextDate) }})</el-text>
                             </div>
                         </div>
                     </div>
@@ -364,10 +479,12 @@ const lazyModeBtnClickEvent = async () => {
     padding: 5px 10px;
 
 }
+
 .times-region {
     display: flex;
     flex-wrap: wrap
 }
+
 .times-item {
     display: flex;
     margin-right: 20px;

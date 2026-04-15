@@ -97,6 +97,7 @@ function toggleItem() {
     }, 210);
 }
 const singleDoms = ref<HTMLCollectionOf<Element>>();
+const fixedCollapseItemHeaderRef = ref<HTMLDivElement>();
 const modelChangeEvent = (val: string) => {
     singleDoms.value = $parentContainerDom.value.getElementsByClassName('fixedCollapseItem-header');
 
@@ -111,25 +112,45 @@ const modelChangeEvent = (val: string) => {
             updateContentHeight();
             isOpen.value = true;
 
-            // 关闭一个特高的，再打开一个矮的时候，当前item滚动直接超出父容器时，修复滚动位置
-            // if (!$parentProps.multipart) {
-            //     setTimeout(() => {
-            //         if (fixedCollapseItemHeaderRef.value.offsetTop < $parentContainerDom.value.scrollTop) {
-            //             $parentContainerDom.value.scrollTo({
-            //                 top: fixedCollapseItemHeaderRef.value.offsetTop,
-            //                 behavior: 'smooth'
-            //             });
-            //         }
-            //     }, 200);
-            // }
+            // 展开时滚动，延迟一点让 DOM 更新完成
+            setTimeout(() => {
+                scrollContentToCenter();
+            }, 50);
         });
     } else {
         contentDomRef.value.style.height = `0px`;
         isOpen.value = false;
-
-        // fixedCollapseItemHeaderRef.value.style.top = 'initial';
     }
 }
+
+// 滚动内容到可视区域：能完整显示则不滚动，否则根据溢出方向滚动
+const scrollContentToCenter = () => {
+    if (!fixedCollapseItemHeaderRef.value || !$parentContainerDom.value || !contentInnerDomRef.value) return;
+    const container = $parentContainerDom.value;
+    const header = fixedCollapseItemHeaderRef.value;
+    const content = contentInnerDomRef.value;
+    const containerHeight = container.getBoundingClientRect().height;
+    const scrollTop = container.scrollTop;
+    const headerTop = header.offsetTop;
+    const contentHeight = content.getBoundingClientRect().height;
+    const totalBottom = headerTop + header.getBoundingClientRect().height + contentHeight;
+    const containerBottom = scrollTop + containerHeight;
+
+    // 能完整显示则不滚动
+    if (headerTop >= scrollTop && totalBottom <= containerBottom) return;
+
+    // 根据溢出方向计算目标位置
+    let targetScrollTop;
+    if (headerTop < scrollTop) {
+        targetScrollTop = headerTop;  // header 在上方，对齐顶部
+    } else if (totalBottom > containerBottom) {
+        targetScrollTop = totalBottom - containerHeight;  // content 溢出底部
+    } else {
+        return;
+    }
+
+    container.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
+};
 </script>
 
 <template>

@@ -29,18 +29,18 @@ onMounted(async () => {
                 <el-text @click="$router.push('/SchemeManagementPage')">ASSTTYYS</el-text>
             </template>
             <template #content>
-                <!-- <el-text>{{ $props.name }}</el-text> -->
                 <el-dropdown trigger="click" size="small">
                     <el-text size="small">
                         {{ $props.name }}<el-icon class="el-icon--right"><arrow-down /></el-icon>
                     </el-text>
                     <template #dropdown>
                         <el-dropdown-menu>
-                            <template v-for="(item, index) in routesDefine">
-                                <el-dropdown-item v-if="item.name !== $props.name" @click="$router.push(item.path)">
-                                    <span>{{ item.name }}</span>
-                                </el-dropdown-item>
-                            </template>
+                            <el-dropdown-item v-for="(item, index) in routesDefine" :key="index"
+                                :disabled="item.name === $props.name"
+                                @click="item.name !== $props.name && $router.push(item.path)">
+                                <span :style="{ color: item.name === $props.name ? '#409eff' : '' }">{{ item.name
+                                    }}</span>
+                            </el-dropdown-item>
                         </el-dropdown-menu>
                     </template>
                 </el-dropdown>
@@ -60,9 +60,11 @@ onMounted(async () => {
     padding-top: 10px;
     padding-bottom: 10px
 }
+
 .el-page-header__left {
     margin-right: 80px;
 }
+
 .el-page-header__extra {
     position: absolute;
     right: 0;
