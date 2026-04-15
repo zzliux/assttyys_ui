@@ -213,6 +213,10 @@ const switchChangeEvent = async (job: JobOptions) => {
             job.checked = false;
             return;
         }
+        // cron 模式下自动计算下次执行时间
+        if (job.repeatMode == 3 && job.interval) {
+            job.nextDate = getNextByCron(job.interval);
+        }
     }
     await persistCurrentConfig();
     await AutoWeb.autoPromise('scheduleChange', job);
@@ -427,7 +431,7 @@ const lazyModeBtnClickEvent = async () => {
                 <template #header-icon-left>
                     <div style="display: flex;">
                         <div class="operation-box">
-                            <el-popover placement="left" :width="80" :hide-after="0" :auto-close="2000" trigger="click"
+                            <el-popover placement="left" :width=80 :hide-after="0" :auto-close="2000" trigger="click"
                                 popper-class="job-item-operation">
                                 <template #reference>
                                     <el-button @click.stop="void 0" size="small" link
@@ -515,6 +519,7 @@ const lazyModeBtnClickEvent = async () => {
 }
 
 .container {
+    width: 100%;
     overflow-y: auto;
     height: calc(100% - 46px);
     display: flex;
@@ -538,12 +543,10 @@ const lazyModeBtnClickEvent = async () => {
     padding: 5px 10px;
 
 }
-
 .times-region {
     display: flex;
     flex-wrap: wrap
 }
-
 .times-item {
     display: flex;
     margin-right: 20px;
@@ -590,6 +593,7 @@ const lazyModeBtnClickEvent = async () => {
     border-bottom: 1px solid var(--el-color-primary) !important;
 }
 
+
 .el-date-editor.el-input {
     width: 100%;
 }
@@ -605,5 +609,9 @@ const lazyModeBtnClickEvent = async () => {
 
 .el-popper>.el-popper__arrow {
     display: none;
+}
+
+.el-popover.el-popper.job-item-operation {
+    min-width: initial;
 }
 </style>
