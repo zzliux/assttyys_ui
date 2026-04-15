@@ -218,6 +218,22 @@ export type AutoWebTypes = {
         param: void,
         result: boolean
     },
+    getScheduleConfigNames: {
+        param: void,
+        result: string[]
+    },
+    loadScheduleConfig: {
+        param: string,
+        result: { error: number, message: string, data?: JobOptions[] }
+    },
+    saveScheduleConfig: {
+        param: { name: string, jobs: JobOptions[] },
+        result: Result
+    },
+    deleteScheduleConfig: {
+        param: string,
+        result: Result
+    },
     getSettings: {
         param: void,
         result: SettingItem[]

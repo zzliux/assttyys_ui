@@ -257,6 +257,32 @@ export const MockMethod: {
     getScheduleLazyMode: () => {
         return false;
     },
+    getScheduleConfigNames: () => {
+        const configs = store.get('scheduleConfigs') || {};
+        return Object.keys(configs);
+    },
+    loadScheduleConfig: (name: string) => {
+        const configs = store.get('scheduleConfigs') || {};
+        const jobs = configs[name];
+        if (!jobs) {
+            return { error: 1, message: '配置不存在' };
+        }
+        store.put('currentScheduleConfigName', name);
+        store.put('scheduleList', jobs);
+        return { error: 0, message: 'success', data: jobs };
+    },
+    saveScheduleConfig: (params: { name: string, jobs: JobOptions[] }) => {
+        const configs = store.get('scheduleConfigs') || {};
+        configs[params.name] = params.jobs;
+        store.put('scheduleConfigs', configs);
+        return { error: 0, message: 'success' };
+    },
+    deleteScheduleConfig: (name: string) => {
+        const configs = store.get('scheduleConfigs') || {};
+        delete configs[name];
+        store.put('scheduleConfigs', configs);
+        return { error: 0, message: 'success' };
+    },
     getSettings: () => {
         // TODO
         const storeSettings = storeCommon.get('settings', {});

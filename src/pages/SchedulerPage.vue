@@ -2,8 +2,8 @@
 import Nav from '@/components/Nav.vue';
 import { AutoWeb } from '@/tools/AutoWeb';
 import type { GroupSchemeName, JobOptions } from '@/tools/declares';
-import { onMounted, onUnmounted, ref, watch } from 'vue';
-import { More, Plus, Operation, Refresh, Delete, Loading } from '@element-plus/icons-vue';
+import { onMounted, ref, watch, computed } from 'vue';
+import { Plus, Operation, Refresh, Delete, More, Loading } from '@element-plus/icons-vue';
 import FixedCollapse from '@/components/FixedCollapse/FixedCollapse.vue';
 import FixedCollapseItem from '@/components/FixedCollapse/FixedCollapseItem.vue';
 import { getNextByCron } from '@/tools/cron';
@@ -11,12 +11,8 @@ import { bueatifyTime, mergeOffsetTime, toStdFormatDateStr } from '@/tools/tools
 import { ElMessage } from 'element-plus';
 import ScheduleJobEditDialog, { type editType, type onConfirmOption } from '@/components/ScheduleJobEditDialog';
 
-
 type orderByType = 'id' | 'level' | 'nextDate';
-const config = ref<{
-    orderBy: orderByType, // 排序
-
-}>(JSON.parse(localStorage.getItem('store.Scheduler') || '{}'));
+const config = ref<{ orderBy: orderByType }>(JSON.parse(localStorage.getItem('store.Scheduler') || '{}'));
 watch(config, (newVal, oldVal) => {
     localStorage.setItem('store.Scheduler', JSON.stringify(newVal));
 }, { deep: true });
@@ -30,30 +26,27 @@ const editJobType = ref<editType>(null);
 const lazyMode = ref<boolean>(false);
 const collapseVal = ref<string>('');
 
-// 定时任务配置管理
 const SCHEDULE_CONFIGS_KEY = 'store.ScheduleConfigs';
 const SCHEDULE_SELECTED_CONFIG_KEY = 'store.ScheduleSelectedConfig';
+const DEFAULT_CONFIG_NAME = '默认配置';
 const scheduleConfigs = ref<Record<string, JobOptions[]>>({});
 const selectedConfigName = ref<string>('');
 const isLoadingConfig = ref<boolean>(true);
 const saveConfigDialogVisible = ref<boolean>(false);
 const newConfigName = ref<string>('');
 
-// 加载保存的配置列表
-const loadScheduleConfigs = () => {
-    try {
-        scheduleConfigs.value = JSON.parse(localStorage.getItem(SCHEDULE_CONFIGS_KEY) || '{}');
-        selectedConfigName.value = localStorage.getItem(SCHEDULE_SELECTED_CONFIG_KEY) || '';
-    } catch {
-        scheduleConfigs.value = {};
-        selectedConfigName.value = '';
-    } finally {
-        isLoadingConfig.value = false;
+const loadScheduleConfigs = async () => {
+    // 从后端获取配置名称列表
+    const names = await AutoWeb.autoPromise('getScheduleConfigNames');
+    scheduleConfigs.value = {};
+    for (const name of names) {
+        scheduleConfigs.value[name] = []; // 占位，实际数据在 loadConfig 时填充
     }
+    selectedConfigName.value = localStorage.getItem(SCHEDULE_SELECTED_CONFIG_KEY) || '';
+    isLoadingConfig.value = false;
 };
 
-// 保存当前配置
-const saveCurrentConfig = () => {
+const createEmptyConfig = async () => {
     if (!newConfigName.value.trim()) {
         ElMessage.error('配置名称不能为空');
         return;
@@ -63,29 +56,70 @@ const saveCurrentConfig = () => {
         ElMessage.error('配置名称已存在');
         return;
     }
-    scheduleConfigs.value[name] = JSON.parse(JSON.stringify(scheduleList.value));
-    localStorage.setItem(SCHEDULE_CONFIGS_KEY, JSON.stringify(scheduleConfigs.value));
+    // 基于默认配置（内置方案）创建
+    const defaultJobs = scheduleConfigs.value[DEFAULT_CONFIG_NAME] || [];
+    const jobs = JSON.parse(JSON.stringify(defaultJobs));
+    const result = await AutoWeb.autoPromise('saveScheduleConfig', { name, jobs });
+    if (result.error !== 0) {
+        ElMessage.error(result.message || '创建失败');
+        return;
+    }
+    scheduleConfigs.value[name] = jobs;
+    selectedConfigName.value = name;
+    scheduleList.value = jobs;
     localStorage.setItem(SCHEDULE_SELECTED_CONFIG_KEY, name);
+    saveConfigDialogVisible.value = false;
+    newConfigName.value = '';
+    ElMessage.success('配置创建成功');
+};
+
+const copyCurrentConfig = async () => {
+    if (!newConfigName.value.trim()) {
+        ElMessage.error('配置名称不能为空');
+        return;
+    }
+    const name = newConfigName.value.trim();
+    if (scheduleConfigs.value[name]) {
+        ElMessage.error('配置名称已存在');
+        return;
+    }
+    // 复制当前配置
+    const jobs = JSON.parse(JSON.stringify(scheduleList.value));
+    const result = await AutoWeb.autoPromise('saveScheduleConfig', { name, jobs });
+    if (result.error !== 0) {
+        ElMessage.error(result.message || '复制失败');
+        return;
+    }
+    scheduleConfigs.value[name] = jobs;
     selectedConfigName.value = name;
     saveConfigDialogVisible.value = false;
     newConfigName.value = '';
-    ElMessage.success('配置保存成功');
+    ElMessage.success('配置复制成功');
 };
 
-// 加载配置
 const loadConfig = async (name: string) => {
     if (!scheduleConfigs.value[name]) return;
-    scheduleList.value = JSON.parse(JSON.stringify(scheduleConfigs.value[name]));
+    // 调用后端接口加载配置（会清空调度器并重新设置任务）
+    const result = await AutoWeb.autoPromise('loadScheduleConfig', name);
+    if (result.error !== 0) {
+        ElMessage.error(result.message || '加载配置失败');
+        return;
+    }
+    // 更新前端状态
+    scheduleList.value = result.data || [];
     selectedConfigName.value = name;
     localStorage.setItem(SCHEDULE_SELECTED_CONFIG_KEY, name);
-    await AutoWeb.autoPromise('saveScheduleList', scheduleList.value);
     ElMessage.success('配置加载成功');
 };
 
-// 删除配置
-const deleteConfig = (name: string) => {
+const deleteConfig = async (name: string) => {
+    if (name === DEFAULT_CONFIG_NAME) return ElMessage.error('默认配置不可删除');
+    const result = await AutoWeb.autoPromise('deleteScheduleConfig', name);
+    if (result.error !== 0) {
+        ElMessage.error(result.message || '删除失败');
+        return;
+    }
     delete scheduleConfigs.value[name];
-    localStorage.setItem(SCHEDULE_CONFIGS_KEY, JSON.stringify(scheduleConfigs.value));
     if (selectedConfigName.value === name) {
         selectedConfigName.value = '';
         localStorage.removeItem(SCHEDULE_SELECTED_CONFIG_KEY);
@@ -93,13 +127,40 @@ const deleteConfig = (name: string) => {
     ElMessage.success('配置删除成功');
 };
 
+const persistCurrentConfig = async () => {
+    await AutoWeb.autoPromise('saveScheduleList', scheduleList.value);
+    // 如果有关联的配置名称，同步更新该配置
+    if (selectedConfigName.value) {
+        scheduleConfigs.value[selectedConfigName.value] = JSON.parse(JSON.stringify(scheduleList.value));
+        await AutoWeb.autoPromise('saveScheduleConfig', {
+            name: selectedConfigName.value,
+            jobs: scheduleList.value
+        });
+    }
+};
+
+const sortedConfigNames = computed(() => {
+    const names = Object.keys(scheduleConfigs.value);
+    const defaultIndex = names.indexOf(DEFAULT_CONFIG_NAME);
+    if (defaultIndex > 0) {
+        names.splice(defaultIndex, 1);
+        names.unshift(DEFAULT_CONFIG_NAME);
+    }
+    return names;
+});
+
 onMounted(async () => {
-    await loadData();
-    loadScheduleConfigs();
+    await loadScheduleConfigs();
+    const savedConfigName = localStorage.getItem(SCHEDULE_SELECTED_CONFIG_KEY);
+    if (savedConfigName && scheduleConfigs.value[savedConfigName]) {
+        // 如果有之前选中的配置，加载该配置
+        await loadConfig(savedConfigName);
+    } else {
+        // 否则加载后端当前激活的调度列表（兼容旧逻辑）
+        await loadData();
+    }
     groupSchemeNames.value = await AutoWeb.autoPromise('getGroupSchemeNames');
-
     lazyMode.value = await AutoWeb.autoPromise('getScheduleLazyMode');
-
     window.loadScheduleData = loadData;
 });
 
@@ -107,14 +168,28 @@ const loadData = async () => {
     const list = await AutoWeb.autoPromise('getScheduleList');
     reSort(list);
     scheduleList.value = list;
-}
+};
 
-const intervalInputEvent = ($event: Event, item: JobOptions) => {
-    if (item.repeatMode == 3) {
-        item.nextDate = getNextByCron(item.interval);
+const reSort = (list: JobOptions[]) => {
+    const orderBy = config.value.orderBy || 'id';
+    if (orderBy === 'id') {
+        list.sort((a, b) => a.id - b.id);
+    } else if (orderBy === 'level') {
+        list.sort((a, b) => (a.level === b.level ? a.id - b.id : parseInt(b.level) - parseInt(a.level)));
+    } else if (orderBy === 'nextDate') {
+        list.sort((a, b) => {
+            if (a.checked !== b.checked) return a.checked ? -1 : 1;
+            if (a.nextDate && b.nextDate) return new Date(a.nextDate).getTime() - new Date(b.nextDate).getTime();
+            return a.nextDate ? -1 : b.nextDate ? 1 : 0;
+        });
     }
-    item.nextDate = mergeOffsetTime(new Date(item.nextDate), item.nextOffset);
-}
+};
+
+const orderByBtnClickEvent = () => {
+    const map: Record<orderByType, orderByType> = { id: 'level', level: 'nextDate', nextDate: 'id' };
+    config.value.orderBy = map[config.value.orderBy || 'id'];
+    reSort(scheduleList.value);
+};
 
 const switchChangeEvent = async (job: JobOptions) => {
     if (job.checked) {
@@ -139,45 +214,17 @@ const switchChangeEvent = async (job: JobOptions) => {
             return;
         }
     }
-    await AutoWeb.autoPromise('saveScheduleList', scheduleList.value);
+    await persistCurrentConfig();
     await AutoWeb.autoPromise('scheduleChange', job);
     reSort(scheduleList.value);
-}
+};
 
-const orderByBtnClickEvent = () => {
-    const map: Record<orderByType, orderByType> = { id: 'level', level: 'nextDate', nextDate: 'id' };
-    config.value.orderBy = map[config.value.orderBy || 'id'];
-    reSort(scheduleList.value);
-}
-
-const reSort = (list: JobOptions[]) => {
-    if (config.value.orderBy === 'id' || !config.value.orderBy) {
-        list.sort((a, b) => (a.id - b.id));
-    } else if (config.value.orderBy === 'level') {
-        list.sort((a, b) => {
-            if (a.level === b.level) {
-                return a.id - b.id;
-            }
-            return parseInt(b.level) - parseInt(a.level);
-        });
-    } else if (config.value.orderBy === 'nextDate') {
-        list.sort((a, b) => {
-            // 先按启用状态排（启用的在前）
-            if (a.checked !== b.checked) {
-                return a.checked ? -1 : 1;
-            }
-            // 再按时间排
-            if (a.nextDate && b.nextDate) {
-                return new Date(a.nextDate).getTime() - new Date(b.nextDate).getTime();
-            } else if (a.nextDate && !b.nextDate) {
-                return -1;
-            } else if (!a.nextDate && b.nextDate) {
-                return 1;
-            }
-            return 0;
-        });
+const intervalInputEvent = ($event: Event, item: JobOptions) => {
+    if (item.repeatMode == 3) {
+        item.nextDate = getNextByCron(item.interval);
     }
-}
+    item.nextDate = mergeOffsetTime(new Date(item.nextDate), item.nextOffset);
+};
 
 const addBtnEvent = () => {
     editJobType.value = 'add';
@@ -188,17 +235,23 @@ const addBtnEvent = () => {
         repeatMode: null,
         interval: null,
         nextDate: null,
+        level: '10',
         config: {
-            scheme: '',
-            level: '10'
+            scheme: ''
         },
     };
     scheduleJobEditDialogShown.value = true;
-}
+};
 
 const refreshBtnEvent = async () => {
-    await loadData();
-}
+    if (selectedConfigName.value) {
+        // 如果有选中的配置，重新加载该配置
+        await loadConfig(selectedConfigName.value);
+    } else {
+        // 如果没有选中配置，从后端获取当前激活的配置列表
+        await loadData();
+    }
+};
 
 const runBtnEvent = async (job: JobOptions) => {
     if (!job.checked) {
@@ -206,20 +259,20 @@ const runBtnEvent = async (job: JobOptions) => {
         return;
     }
     job.nextDate = new Date();
-    await AutoWeb.autoPromise('saveScheduleList', scheduleList.value);
+    await persistCurrentConfig();
     await AutoWeb.autoPromise('scheduleChange', job);
-}
+};
 
 const modifyBtnEvent = (job: JobOptions) => {
     editJob.value = job;
     editJobType.value = 'modify';
     scheduleJobEditDialogShown.value = true;
-}
+};
 
 const deleteConfirmBtnEvent = async (job: JobOptions) => {
     scheduleList.value = scheduleList.value.filter(v => v.name !== job.name);
-    await AutoWeb.autoPromise('saveScheduleList', scheduleList.value);
-}
+    await persistCurrentConfig();
+};
 
 const jobEditConfirmEvent = async (option: onConfirmOption) => {
     if (option.type === 'add') {
@@ -231,7 +284,7 @@ const jobEditConfirmEvent = async (option: onConfirmOption) => {
         option.newScheduleJob.id = scheduleList.value.reduce((p, c) => Math.max(p, c.id), 0) + 1;
         scheduleList.value.push(option.newScheduleJob);
         reSort(scheduleList.value);
-        await AutoWeb.autoPromise('saveScheduleList', scheduleList.value);
+        await persistCurrentConfig();
         collapseVal.value = `${option.newScheduleJob.id} ${option.newScheduleJob.name}`;
         return true;
     } else if (option.type === 'modify') {
@@ -242,17 +295,16 @@ const jobEditConfirmEvent = async (option: onConfirmOption) => {
         const index = scheduleList.value.findIndex(v => v.name === option.oldScheduleJob.name);
         scheduleList.value[index] = option.newScheduleJob;
         reSort(scheduleList.value);
-        await AutoWeb.autoPromise('saveScheduleList', scheduleList.value);
+        await persistCurrentConfig();
         return true;
     }
     return true;
-}
+};
 
 const lazyModeBtnClickEvent = async () => {
     lazyMode.value = !lazyMode.value;
     await AutoWeb.autoPromise('setScheduleLazyMode', lazyMode.value);
-}
-
+};
 </script>
 
 <template>
@@ -262,21 +314,28 @@ const lazyModeBtnClickEvent = async () => {
             <span style="margin-right: 10px;">
                 <el-dropdown trigger="click">
                     <el-button link>
-                        <el-icon v-if="isLoadingConfig" class="is-loading"><Loading /></el-icon>
-                        <el-text v-else style="padding-top: 2px;">{{ selectedConfigName || '配置' }}</el-text>
+                        <el-icon v-if="isLoadingConfig" class="is-loading">
+                            <Loading />
+                        </el-icon>
+                        <el-text v-else style="padding-top: 2px;">{{ selectedConfigName || '默认配置' }}</el-text>
                     </el-button>
                     <template #dropdown>
                         <el-dropdown-menu>
-                            <el-dropdown-item v-for="(config, name) in scheduleConfigs" :key="name"
-                                @click="loadConfig(name)">
+                            <el-dropdown-item v-for="name in sortedConfigNames" :key="name" @click="loadConfig(name)">
                                 <div
                                     style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                                    <span :style="{ color: name === selectedConfigName ? '#409eff' : '' }">{{ name
-                                        }}</span>
-                                    <el-icon @click.stop="deleteConfig(name)"
-                                        style="margin-left: 10px; color: #f56c6c;">
-                                        <Delete />
-                                    </el-icon>
+                                    <span :style="{ color: name === selectedConfigName ? '#409eff' : '#303133' }">
+                                        {{ name }} <el-text v-if="name === DEFAULT_CONFIG_NAME" type="info"></el-text>
+                                    </span>
+                                    <el-popconfirm v-if="name !== DEFAULT_CONFIG_NAME" title="确认是否删除"
+                                        @confirm="deleteConfig(name)" confirm-button-text="确认" cancel-button-text="取消"
+                                        placement="bottom-end" teleported>
+                                        <template #reference>
+                                            <el-icon @click.stop="void 0" style="margin-left: 10px; color: #f56c6c;">
+                                                <Delete />
+                                            </el-icon>
+                                        </template>
+                                    </el-popconfirm>
                                 </div>
                             </el-dropdown-item>
                             <el-dropdown-item divided @click="saveConfigDialogVisible = true">
@@ -284,7 +343,7 @@ const lazyModeBtnClickEvent = async () => {
                                     <el-icon style="margin-right: 5px;">
                                         <Plus />
                                     </el-icon>
-                                    保存当前配置
+                                    新增配置
                                 </div>
                             </el-dropdown-item>
                         </el-dropdown-menu>
@@ -309,7 +368,7 @@ const lazyModeBtnClickEvent = async () => {
                 <el-popover placement="bottom" trigger="click">
                     <template #reference>
                         <el-button link><el-icon>
-                            <More />
+                                <More />
                             </el-icon></el-button>
                     </template>
                     <template #default>
@@ -328,12 +387,13 @@ const lazyModeBtnClickEvent = async () => {
             </span>
         </template>
     </Nav>
-    <!-- 保存配置对话框 -->
-    <el-dialog v-model="saveConfigDialogVisible" title="保存配置" width="300px">
-        <el-input v-model="newConfigName" placeholder="请输入配置名称" @keyup.enter="saveCurrentConfig" />
+    <!-- 新增配置对话框 -->
+    <el-dialog v-model="saveConfigDialogVisible" title="新增配置" width="320px">
+        <el-input v-model="newConfigName" placeholder="请输入配置名称" />
         <template #footer>
             <el-button @click="saveConfigDialogVisible = false">取消</el-button>
-            <el-button type="primary" @click="saveCurrentConfig">确定</el-button>
+            <el-button type="primary" @click="createEmptyConfig">全新创建</el-button>
+            <el-button type="success" @click="copyCurrentConfig">复制当前配置</el-button>
         </template>
     </el-dialog>
 
@@ -455,7 +515,6 @@ const lazyModeBtnClickEvent = async () => {
 }
 
 .container {
-    width: 100%;
     overflow-y: auto;
     height: calc(100% - 46px);
     display: flex;
@@ -531,7 +590,6 @@ const lazyModeBtnClickEvent = async () => {
     border-bottom: 1px solid var(--el-color-primary) !important;
 }
 
-
 .el-date-editor.el-input {
     width: 100%;
 }
@@ -547,9 +605,5 @@ const lazyModeBtnClickEvent = async () => {
 
 .el-popper>.el-popper__arrow {
     display: none;
-}
-
-.el-popover.el-popper.job-item-operation {
-    min-width: initial;
 }
 </style>
