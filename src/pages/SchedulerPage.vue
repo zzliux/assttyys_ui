@@ -121,8 +121,13 @@ const deleteConfig = async (name: string) => {
     }
     delete scheduleConfigs.value[name];
     if (selectedConfigName.value === name) {
-        selectedConfigName.value = '';
-        localStorage.removeItem(SCHEDULE_SELECTED_CONFIG_KEY);
+        // 自动切换到默认配置
+        if (scheduleConfigs.value[DEFAULT_CONFIG_NAME]) {
+            await loadConfig(DEFAULT_CONFIG_NAME);
+        } else {
+            selectedConfigName.value = '';
+            localStorage.removeItem(SCHEDULE_SELECTED_CONFIG_KEY);
+        }
     }
     ElMessage.success('配置删除成功');
 };
@@ -274,7 +279,11 @@ const modifyBtnEvent = (job: JobOptions) => {
 };
 
 const deleteConfirmBtnEvent = async (job: JobOptions) => {
-    scheduleList.value = scheduleList.value.filter(v => v.name !== job.name);
+    const result: JobOptions[] = [];
+    for (const v of scheduleList.value) {
+        if (v.name !== job.name) result.push(v);
+    }
+    scheduleList.value = result;
     await persistCurrentConfig();
 };
 
@@ -292,7 +301,11 @@ const jobEditConfirmEvent = async (option: onConfirmOption) => {
         collapseVal.value = `${option.newScheduleJob.id} ${option.newScheduleJob.name}`;
         return true;
     } else if (option.type === 'modify') {
-        if ((scheduleList.value.filter(v => v.name === option.oldScheduleJob.name).length > 1)) {
+        let count = 0;
+        for (const v of scheduleList.value) {
+            if (v.name === option.oldScheduleJob.name) count++;
+        }
+        if (count > 1) {
             ElMessage.error('任务名已存在，请修改任务名');
             return false;
         }

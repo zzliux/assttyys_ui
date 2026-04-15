@@ -129,11 +129,17 @@ const scrollContentToCenter = () => {
     const container = $parentContainerDom.value;
     const header = fixedCollapseItemHeaderRef.value;
     const content = contentInnerDomRef.value;
-    const containerHeight = container.getBoundingClientRect().height;
-    const scrollTop = container.scrollTop;
-    const headerTop = header.offsetTop;
+
+    const containerRect = container.getBoundingClientRect();
+    const headerRect = header.getBoundingClientRect();
     const contentHeight = content.getBoundingClientRect().height;
-    const totalBottom = headerTop + header.getBoundingClientRect().height + contentHeight;
+    const scrollTop = container.scrollTop;
+
+    // 计算 header 相对于容器内容顶部的实际位置（使用 getBoundingClientRect 更准确）
+    const headerTop = scrollTop + headerRect.top - containerRect.top;
+    const headerHeight = headerRect.height;
+    const totalBottom = headerTop + headerHeight + contentHeight;
+    const containerHeight = containerRect.height;
     const containerBottom = scrollTop + containerHeight;
 
     // 能完整显示则不滚动
@@ -141,10 +147,12 @@ const scrollContentToCenter = () => {
 
     // 根据溢出方向计算目标位置
     let targetScrollTop;
-    if (headerTop < scrollTop) {
-        targetScrollTop = headerTop;  // header 在上方，对齐顶部
+    if (headerRect.top < containerRect.top) {
+        // header 在可视区域上方，滚动使其顶部对齐
+        targetScrollTop = headerTop;
     } else if (totalBottom > containerBottom) {
-        targetScrollTop = totalBottom - containerHeight;  // content 溢出底部
+        // content 溢出底部，滚动显示完整内容
+        targetScrollTop = totalBottom - containerHeight;
     } else {
         return;
     }
