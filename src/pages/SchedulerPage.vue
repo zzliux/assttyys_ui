@@ -428,8 +428,10 @@ const lazyModeBtnClickEvent = async () => {
                                 size="small" style="margin-bottom: 5px; font-weight: bold;">
                                 {{ item.id }} {{ item.name }}
                             </el-text>
+                            <el-text size="small" type="info" style="margin-left: 8px;">
+                                {{ item.desc }}
+                            </el-text>
                         </div>
-                        <div><el-text size="small" type="info">{{ item.desc }}</el-text></div>
                         <div class="times-region">
                             <div class="times-item" v-if="item.lastRunTime"><el-text size="small"
                                     type="info">上次执行开始时间：{{ toStdFormatDateStr(item.lastRunTime)
@@ -559,10 +561,12 @@ const lazyModeBtnClickEvent = async () => {
     padding: 5px 10px;
 
 }
+
 .times-region {
     display: flex;
     flex-wrap: wrap
 }
+
 .times-item {
     display: flex;
     margin-right: 20px;
