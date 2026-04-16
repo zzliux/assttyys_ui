@@ -42,8 +42,7 @@ const loadScheduleConfigs = async () => {
     for (const name of names) {
         scheduleConfigs.value[name] = []; // 占位，实际数据在 loadConfig 时填充
     }
-    selectedConfigName.value = localStorage.getItem(SCHEDULE_SELECTED_CONFIG_KEY) || '';
-    isLoadingConfig.value = false;
+    // 不在此处设置 selectedConfigName，由 loadConfig 统一设置，避免显示与加载不一致
 };
 
 const createEmptyConfig = async () => {
@@ -157,16 +156,20 @@ const sortedConfigNames = computed(() => {
 onMounted(async () => {
     await loadScheduleConfigs();
     const savedConfigName = localStorage.getItem(SCHEDULE_SELECTED_CONFIG_KEY);
-    if (savedConfigName && scheduleConfigs.value[savedConfigName]) {
-        // 如果有之前选中的配置，加载该配置
+    if (savedConfigName && savedConfigName in scheduleConfigs.value) {
+        // 有之前选中的配置，加载该配置
         await loadConfig(savedConfigName);
-    } else {
-        // 否则加载后端当前激活的调度列表（兼容旧逻辑）
-        await loadData();
+    } else if (DEFAULT_CONFIG_NAME in scheduleConfigs.value) {
+        // 没有选中配置时，直接加载默认配置（从持久化存储）
+        await loadConfig(DEFAULT_CONFIG_NAME);
+    } else if (Object.keys(scheduleConfigs.value).length > 0) {
+        // 没有默认配置时，加载第一个可用配置
+        await loadConfig(Object.keys(scheduleConfigs.value)[0]);
     }
+    // 配置数据加载完成后，关闭 loading
+    isLoadingConfig.value = false;
     groupSchemeNames.value = await AutoWeb.autoPromise('getGroupSchemeNames');
     lazyMode.value = await AutoWeb.autoPromise('getScheduleLazyMode');
-    window.loadScheduleData = loadData;
 });
 
 const loadData = async () => {

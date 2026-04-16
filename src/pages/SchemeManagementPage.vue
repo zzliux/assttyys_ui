@@ -324,6 +324,7 @@ const copyFinish = async (str: string) => {
                 <template #item="{ element: groupSchemeName, index }">
                     <FixedCollapseItem :header-icon="Folder" :header-icon-active="FolderOpened"
                         :show-right-arrow-icon="true" :prevColor="getGroupColor(groupSchemeName.groupName)"
+                        :auto-scroll="false"
                         v-if="(!config.showHiddenGroup && !groupSchemeName.hidden) || config.showHiddenGroup"
                         :name="groupSchemeName.groupName">
                         <template #header><el-text size="small">{{ groupSchemeName.groupName }}</el-text></template>

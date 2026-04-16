@@ -25,6 +25,10 @@ const $props = defineProps({
         type: Boolean,
         default: false
     },
+    autoScroll: {
+        type: Boolean,
+        default: true
+    },
 });
 
 const $parentProps = inject<{ multipart: boolean, modelValue: string, preRenderContent: boolean }>('fixedCollapse.instanceProps');
@@ -87,7 +91,11 @@ function toggleItem() {
             allNames.push($props.name);
         }
     } else {
-        allNames = allNames.filter(name => name !== $props.name);
+        const result: string[] = [];
+        for (const name of allNames) {
+            if (name !== $props.name) result.push(name);
+        }
+        allNames = result;
     }
     $parentModel.value = allNames.join(',');
 
@@ -125,6 +133,7 @@ const modelChangeEvent = (val: string) => {
 
 // 滚动内容到可视区域：能完整显示则不滚动，否则根据溢出方向滚动
 const scrollContentToCenter = () => {
+    if (!$props.autoScroll) return; // 禁用自动滚动
     if (!fixedCollapseItemHeaderRef.value || !$parentContainerDom.value || !contentInnerDomRef.value) return;
     const container = $parentContainerDom.value;
     const header = fixedCollapseItemHeaderRef.value;
