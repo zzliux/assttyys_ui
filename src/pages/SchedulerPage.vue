@@ -221,10 +221,6 @@ const switchChangeEvent = async (job: JobOptions) => {
             job.checked = false;
             return;
         }
-        // cron 模式下自动计算下次执行时间
-        if (job.repeatMode == 3 && job.interval) {
-            job.nextDate = getNextByCron(job.interval);
-        }
     }
     await persistCurrentConfig();
     await AutoWeb.autoPromise('scheduleChange', job);
@@ -449,7 +445,7 @@ const lazyModeBtnClickEvent = async () => {
                 <template #header-icon-left>
                     <div style="display: flex;">
                         <div class="operation-box">
-                            <el-popover placement="left" :width=80 :hide-after="0" :auto-close="2000" trigger="click"
+                            <el-popover placement="left" :width="80" :hide-after="0" :auto-close="2000" trigger="click"
                                 popper-class="job-item-operation">
                                 <template #reference>
                                     <el-button @click.stop="void 0" size="small" link

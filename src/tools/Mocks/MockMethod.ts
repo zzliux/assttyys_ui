@@ -259,6 +259,13 @@ export const MockMethod: {
     },
     getScheduleConfigNames: () => {
         const configs = store.get('scheduleConfigs') || {};
+        // 如果没有"默认配置"，自动创建
+		const DEFAULT_CONFIG_NAME = '默认配置';
+		if (!configs[DEFAULT_CONFIG_NAME]) {
+			const currentJobs = store.get('scheduleList') || [];
+			configs[DEFAULT_CONFIG_NAME] = currentJobs;
+			store.put('scheduleConfigs', configs);
+		}
         return Object.keys(configs);
     },
     loadScheduleConfig: (name: string) => {
