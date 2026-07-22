@@ -69,6 +69,9 @@ const watchSchemeEvent = (newScheme: Scheme) => {
             enabled: newScheme.list.includes(func.id),
         }
     });
+    if (typeof newScheme.commonConfig === 'undefined') {
+        newScheme.commonConfig = {};
+    }
     commonConfigDefine.value.forEach(group => {
         group.config?.forEach(configItem => {
             if (typeof newScheme.commonConfig?.[configItem.name] !== 'undefined') {
