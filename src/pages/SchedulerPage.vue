@@ -96,6 +96,17 @@ const copyCurrentConfig = async () => {
     ElMessage.success('配置复制成功');
 };
 
+const ensurePushOption = (job: JobOptions) => {
+    if (!job.pushOption) {
+        job.pushOption = {
+            enable: false,
+            start: false,
+            interval: 0,
+        };
+    }
+    return job;
+};
+
 const loadConfig = async (name: string) => {
     if (!scheduleConfigs.value[name]) return;
     // 调用后端接口加载配置（会清空调度器并重新设置任务）
@@ -105,11 +116,12 @@ const loadConfig = async (name: string) => {
         return;
     }
     // 更新前端状态
-    scheduleList.value = result.data || [];
+    scheduleList.value = (result.data || []).map(ensurePushOption);
     selectedConfigName.value = name;
     localStorage.setItem(SCHEDULE_SELECTED_CONFIG_KEY, name);
     ElMessage.success('配置加载成功');
 };
+
 
 const deleteConfig = async (name: string) => {
     if (name === DEFAULT_CONFIG_NAME) return ElMessage.error('默认配置不可删除');
@@ -174,9 +186,11 @@ onMounted(async () => {
 
 const loadData = async () => {
     const list = await AutoWeb.autoPromise('getScheduleList');
+    list.forEach(ensurePushOption);
     reSort(list);
     scheduleList.value = list;
 };
+
 
 const reSort = (list: JobOptions[]) => {
     const orderBy = config.value.orderBy || 'id';
@@ -247,7 +261,13 @@ const addBtnEvent = () => {
         config: {
             scheme: ''
         },
+        pushOption: {
+            enable: false,
+            start: false,
+            interval: 0,
+        },
     };
+
     scheduleJobEditDialogShown.value = true;
 };
 
@@ -414,7 +434,7 @@ const lazyModeBtnClickEvent = async () => {
     </el-dialog>
 
     <div class="container">
-        <FixedCollapse v-model="collapseVal" :multipart="false">
+        <FixedCollapse v-model="collapseVal" :multipart="false" :pre-render-content="true">
             <FixedCollapseItem v-for="(item, index) in scheduleList" :key="index" :name="`${item.id} ${item.name}`">
                 <template #header>
                     <div>
@@ -513,7 +533,19 @@ const lazyModeBtnClickEvent = async () => {
                         <el-form-item label="优先级" size=small>
                             <el-input v-model="item.level" type="number" />
                         </el-form-item>
+                        <el-form-item label="启用推送" size=small>
+                            <el-switch v-model="item.pushOption.enable" />
+                        </el-form-item>
+                        <template v-if="item.pushOption.enable">
+                            <el-form-item label="启动时推送" size=small>
+                                <el-switch v-model="item.pushOption.start" />
+                            </el-form-item>
+                            <el-form-item label="定时推送间隔(单位：秒，值为0时关闭定时推送)" size=small>
+                                <el-input v-model.number="item.pushOption.interval" type="number" />
+                            </el-form-item>
+                        </template>
                     </el-form>
+
                 </template>
             </FixedCollapseItem>
         </FixedCollapse>

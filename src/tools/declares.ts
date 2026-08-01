@@ -139,6 +139,12 @@ export type JobOptions = {
     runningCallback?: Function; // 开始运行时执行的回调
     level?: string; //执行任务优先级
     inner?: boolean;
+    // 推送选项，仅设置中的推送类型不为“关闭推送”时生效
+	pushOption?: {
+		enable: boolean; // 是否启用推送
+		start: boolean; // 启动时推送
+		interval: number; // 运行时推送间隔，单位秒
+	}
 }
 
 // 定义AutoWeb.autoPromise/auto的参数类型和响应类型
